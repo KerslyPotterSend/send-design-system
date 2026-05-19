@@ -23,7 +23,10 @@
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/32x32.png"
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
