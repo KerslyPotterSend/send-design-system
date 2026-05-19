@@ -1,18 +1,17 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { dmSans } from '../theme/typography';
+import { content, layerTokens } from '../theme/colors';
+import { proposedTextStyle } from '../theme/typography';
 
-export default function ComingSoonScreen({ route, topInset = 0, mode }) {
+export default function ComingSoonScreen({ route, topInset = 0, mode = 'light' }) {
   const title = route?.params?.title ?? 'Coming soon';
-  const isDark = mode === 'dark';
-  const bg = isDark ? '#0E1A1C' : '#F2F2F2';
-  const titleColor = isDark ? '#FFFFFF' : '#1A1A1A';
-  const bodyColor = isDark ? '#A1A5A7' : '#666666';
+  const layer = layerTokens[mode];
+  const contentTokens = content[mode];
 
   return (
-    <View style={[styles.container, { backgroundColor: bg, paddingTop: topInset }]}>
+    <View style={[styles.container, { backgroundColor: layer.layer1Background, paddingTop: topInset }]}>
       <Text style={styles.emoji}>🚧</Text>
-      <Text style={[styles.title, { color: titleColor }]}>{title}</Text>
-      <Text style={[styles.body, { color: bodyColor }]}>
+      <Text style={[styles.title, { color: contentTokens.contentPrimary }]}>{title}</Text>
+      <Text style={[styles.body, { color: contentTokens.contentSecondary }]}>
         This section hasn't been built yet. Colors first — the rest will follow.
       </Text>
     </View>
@@ -31,13 +30,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontFamily: dmSans.bold,
-    fontSize: 22,
+    ...proposedTextStyle('headline-small', 'bold'),
     marginBottom: 8,
   },
   body: {
-    fontFamily: dmSans.regular,
-    fontSize: 14,
+    ...proposedTextStyle('body-medium', 'regular'),
     textAlign: 'center',
     maxWidth: 280,
   },

@@ -1,11 +1,16 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { dmSans } from '../theme/typography';
+import { base, content, layerTokens } from '../theme/colors';
+import { proposedTextStyle } from '../theme/typography';
 
 const SECTIONS = [
   { key: 'Colors', subtitle: 'Base, brand, layer & content tokens', ready: true },
   { key: 'Typography', subtitle: 'Type scale, weights, line heights', ready: true },
   { key: 'Components', subtitle: 'Buttons, inputs, cards, etc.', ready: false },
 ];
+
+const layer = layerTokens.light;
+const baseTokens = base.light;
+const contentTokens = content.light;
 
 export default function HomeScreen({ navigation }) {
   return (
@@ -40,22 +45,20 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F2',
+    backgroundColor: layer.layer1Background,
   },
   content: {
     padding: 20,
     paddingTop: 8,
   },
   title: {
-    fontFamily: dmSans.bold,
-    fontSize: 28,
-    color: '#1A1A1A',
+    ...proposedTextStyle('headline-medium', 'bold'),
+    color: contentTokens.contentPrimary,
     marginTop: 8,
   },
   subtitle: {
-    fontFamily: dmSans.regular,
-    fontSize: 14,
-    color: '#666666',
+    ...proposedTextStyle('body-medium', 'regular'),
+    color: contentTokens.contentSecondary,
     marginTop: 6,
     marginBottom: 24,
   },
@@ -65,14 +68,14 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: layer.layer2Background,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: baseTokens.base3,
   },
   itemPressed: {
-    backgroundColor: '#F2F2F2',
+    backgroundColor: layer.layer2BackgroundHover,
   },
   itemDisabled: {
     opacity: 0.6,
@@ -81,19 +84,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemTitle: {
-    fontFamily: dmSans.semiBold,
-    fontSize: 17,
-    color: '#1A1A1A',
+    ...proposedTextStyle('body-large', 'semiBold'),
+    color: contentTokens.contentPrimary,
   },
   itemSubtitle: {
-    fontFamily: dmSans.regular,
-    fontSize: 13,
-    color: '#808080',
+    ...proposedTextStyle('body-small', 'regular'),
+    color: contentTokens.contentSecondary,
     marginTop: 2,
   },
   itemChevron: {
-    fontFamily: dmSans.medium,
-    fontSize: 20,
-    color: '#999999',
+    ...proposedTextStyle('title-large', 'medium'),
+    color: contentTokens.contentTertiary,
   },
 });

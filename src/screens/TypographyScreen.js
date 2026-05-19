@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { base, brand, content, layerTokens } from '../theme/colors';
 import {
+  currentTextStyle,
   dmSans,
   fontPacks,
   headingDefaults,
@@ -157,6 +158,7 @@ export default function TypographyScreen({
             code="import { fontPacks } from 'theme/typography'"
             primary={primary}
             secondary={secondary}
+            current
           />
           <View style={styles.list}>
             {SIZE_KEYS.map((key, i) => {
@@ -186,7 +188,7 @@ export default function TypographyScreen({
                       },
                     ]}
                   >
-                    The quick brown fox
+                    Send money
                   </Text>
                 </View>
               );
@@ -202,6 +204,7 @@ export default function TypographyScreen({
             code="import { Heading, Paragraph } from '@my/ui/components/Texts/Text'"
             primary={primary}
             secondary={secondary}
+            current
           />
 
           <View style={[styles.defaultRow, { borderColor: dividerColor }]}>
@@ -255,7 +258,7 @@ export default function TypographyScreen({
                 },
               ]}
             >
-              Body text — the size‑4 default. The quick brown fox jumps over the lazy dog. 0123456789.
+              Body text — the size‑4 default. Send money to anyone, anywhere. 0123456789.
             </Text>
             <Text style={[styles.callout, { color: secondary }]}>
               {`<Paragraph size="4" fontWeight="$regular">Body text…</Paragraph>`}
@@ -271,6 +274,7 @@ export default function TypographyScreen({
             code="fontWeight: '$regular' | '$medium' | '$semiBold'"
             primary={primary}
             secondary={secondary}
+            current
           />
           <View style={styles.list}>
             {WEIGHT_ENTRIES.map((w, i) => (
@@ -309,6 +313,7 @@ export default function TypographyScreen({
             description="How the spec composes underneath"
             primary={primary}
             secondary={secondary}
+            current
           />
           <View style={styles.notesList}>
             <NoteRow
@@ -348,12 +353,15 @@ function SectionCard({ children, cardBg, cardBorder }) {
   return <View style={[styles.section, { backgroundColor: cardBg, borderColor: cardBorder }]}>{children}</View>;
 }
 
-function SectionHeader({ title, description, code, primary, secondary }) {
+function SectionHeader({ title, description, code, primary, secondary, current }) {
+  const titleStyle = current ? styles.sectionTitleCurrent : styles.sectionTitle;
+  const subtitleStyle = current ? styles.sectionSubtitleCurrent : styles.sectionSubtitle;
+  const exportStyle = current ? styles.sectionExportCurrent : styles.sectionExport;
   return (
     <View style={styles.sectionHeader}>
-      <Text style={[styles.sectionTitle, { color: primary }]}>{title}</Text>
-      <Text style={[styles.sectionSubtitle, { color: secondary }]}>{description}</Text>
-      {code && <Text style={[styles.sectionExport, { color: secondary }]}>{code}</Text>}
+      <Text style={[titleStyle, { color: primary }]}>{title}</Text>
+      <Text style={[subtitleStyle, { color: secondary }]}>{description}</Text>
+      {code && <Text style={[exportStyle, { color: secondary }]}>{code}</Text>}
     </View>
   );
 }
@@ -692,8 +700,19 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   sectionExport: {
-    fontFamily: 'Menlo',
+    fontFamily: dmSans.regular,
     fontSize: 11,
+    marginTop: 8,
+  },
+  sectionTitleCurrent: {
+    ...currentTextStyle('5', 'bold'),
+  },
+  sectionSubtitleCurrent: {
+    ...currentTextStyle('3', 'regular'),
+    marginTop: 4,
+  },
+  sectionExportCurrent: {
+    ...currentTextStyle('1', 'regular'),
     marginTop: 8,
   },
   list: {
@@ -710,16 +729,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sizeBadge: {
-    fontFamily: 'Menlo',
-    fontSize: 12,
-    fontWeight: '700',
+    ...currentTextStyle('2', 'bold'),
   },
   sizeMeta: {
-    fontFamily: 'Menlo',
-    fontSize: 11,
+    ...currentTextStyle('1', 'regular'),
   },
   sample: {
-    fontFamily: dmSans.regular,
+    ...currentTextStyle('4', 'regular'),
   },
   defaultRow: {
     paddingVertical: 16,
@@ -729,8 +745,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   componentName: {
-    fontFamily: dmSans.bold,
-    fontSize: 18,
+    ...currentTextStyle('5', 'bold'),
     marginBottom: 8,
   },
   metaRow: {
@@ -739,18 +754,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   metaLabel: {
-    fontFamily: 'Menlo',
-    fontSize: 11,
+    ...currentTextStyle('1', 'regular'),
     minWidth: 120,
   },
   metaValue: {
-    fontFamily: 'Menlo',
-    fontSize: 12,
-    fontWeight: '600',
+    ...currentTextStyle('2', 'semiBold'),
   },
   callout: {
-    fontFamily: 'Menlo',
-    fontSize: 11,
+    ...currentTextStyle('1', 'regular'),
     marginTop: 12,
   },
   weightRow: {
@@ -764,21 +775,16 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   weightLabel: {
-    fontFamily: dmSans.bold,
-    fontSize: 15,
+    ...currentTextStyle('4', 'bold'),
   },
   weightToken: {
-    fontFamily: 'Menlo',
-    fontSize: 11,
+    ...currentTextStyle('1', 'regular'),
   },
   weightValue: {
-    fontFamily: 'Menlo',
-    fontSize: 11,
+    ...currentTextStyle('1', 'regular'),
   },
   weightSample: {
-    fontFamily: dmSans.regular,
-    fontSize: 28,
-    lineHeight: 36,
+    ...currentTextStyle('6', 'regular'),
   },
   notesList: {
     gap: 12,
@@ -787,12 +793,9 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   noteLabel: {
-    fontFamily: 'Menlo',
-    fontSize: 12,
-    fontWeight: '700',
+    ...currentTextStyle('2', 'bold'),
   },
   noteValue: {
-    fontFamily: dmSans.regular,
-    fontSize: 13,
+    ...currentTextStyle('3', 'regular'),
   },
 });

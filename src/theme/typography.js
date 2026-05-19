@@ -57,27 +57,43 @@ export const stylisticSets = [
 ];
 
 // Proposed scale — semantic role names mapped onto the size scale.
-// Tighter (negative) letter-spacing at large sizes for proper display tracking.
+// Tracking ramps from slightly positive at label sizes (legibility) to
+// aggressively negative at display sizes (~3-5% of font size).
 export const proposedScale = [
-  { name: 'label',           scaleSize: 1,  fontSize: 10, lineHeight: 16, letterSpacing: 0,    sample: 'The quick brown fox jumps over the lazy dog' },
-  { name: 'label-medium',    scaleSize: 2,  fontSize: 12, lineHeight: 16, letterSpacing: 0,    sample: 'The quick brown fox jumps over the lazy dog' },
+  { name: 'label',           scaleSize: 1,  fontSize: 10, lineHeight: 16, letterSpacing: 0.2,  sample: 'The quick brown fox jumps over the lazy dog' },
+  { name: 'label-medium',    scaleSize: 2,  fontSize: 12, lineHeight: 16, letterSpacing: 0.1,  sample: 'The quick brown fox jumps over the lazy dog' },
   { name: 'body-small',      scaleSize: 2,  fontSize: 12, lineHeight: 16, letterSpacing: 0,    sample: 'The quick brown fox jumps over the lazy dog' },
-  { name: 'body-medium',     scaleSize: 3,  fontSize: 14, lineHeight: 20, letterSpacing: -0.1, sample: 'The quick brown fox jumps over' },
-  { name: 'body-large',      scaleSize: 4,  fontSize: 16, lineHeight: 24, letterSpacing: -0.2, sample: 'Send money to anyone, anywhere' },
-  { name: 'title-medium',    scaleSize: 4,  fontSize: 16, lineHeight: 24, letterSpacing: -0.2, sample: 'Send money to anyone, anywhere' },
-  { name: 'title-large',     scaleSize: 5,  fontSize: 20, lineHeight: 28, letterSpacing: -0.3, sample: 'Send money to anyone' },
-  { name: 'headline-small',  scaleSize: 6,  fontSize: 24, lineHeight: 32, letterSpacing: -0.4, sample: 'Send money' },
-  { name: 'headline-medium', scaleSize: 7,  fontSize: 32, lineHeight: 40, letterSpacing: -0.6, sample: 'Send money' },
-  { name: 'headline-large',  scaleSize: 8,  fontSize: 40, lineHeight: 48, letterSpacing: -0.8, sample: 'Send money' },
-  { name: 'display-small',   scaleSize: 9,  fontSize: 48, lineHeight: 56, letterSpacing: -1,   sample: 'Send money' },
-  { name: 'display-medium',  scaleSize: 10, fontSize: 56, lineHeight: 64, letterSpacing: -1.2, sample: 'Send money' },
-  { name: 'display-large',   scaleSize: 11, fontSize: 64, lineHeight: 72, letterSpacing: -1.5, sample: 'Send money' },
+  { name: 'body-medium',     scaleSize: 3,  fontSize: 14, lineHeight: 20, letterSpacing: -0.2, sample: 'The quick brown fox jumps over' },
+  { name: 'body-large',      scaleSize: 4,  fontSize: 16, lineHeight: 24, letterSpacing: -0.3, sample: 'Send money to anyone, anywhere' },
+  { name: 'title-medium',    scaleSize: 4,  fontSize: 16, lineHeight: 24, letterSpacing: -0.4, sample: 'Send money to anyone, anywhere' },
+  { name: 'title-large',     scaleSize: 5,  fontSize: 20, lineHeight: 28, letterSpacing: -0.6, sample: 'Send money to anyone' },
+  { name: 'headline-small',  scaleSize: 6,  fontSize: 24, lineHeight: 32, letterSpacing: -0.8, sample: 'Send money' },
+  { name: 'headline-medium', scaleSize: 7,  fontSize: 32, lineHeight: 40, letterSpacing: -1.2, sample: 'Send money' },
+  { name: 'headline-large',  scaleSize: 8,  fontSize: 40, lineHeight: 48, letterSpacing: -1.6, sample: 'Send money' },
+  { name: 'display-small',   scaleSize: 9,  fontSize: 48, lineHeight: 56, letterSpacing: -2,   sample: 'Send money' },
+  { name: 'display-medium',  scaleSize: 10, fontSize: 56, lineHeight: 64, letterSpacing: -2.5, sample: 'Send money' },
+  { name: 'display-large',   scaleSize: 11, fontSize: 64, lineHeight: 72, letterSpacing: -3,   sample: 'Send money' },
 ];
 
 export const ALL_STYLISTIC_VARIANTS = stylisticSets.map((s) => s.name);
 export const ALL_STYLISTIC_FEATURES = stylisticSets.map((s) => `"${s.otFeature}"`).join(', ');
 
 const proposedByName = Object.fromEntries(proposedScale.map((s) => [s.name, s]));
+
+// Returns a style object for the given current spec size key + weight, with all
+// DM Sans stylistic alternates (ss01-ss07) enabled.
+export function currentTextStyle(sizeKey, weight = 'regular') {
+  const pack = fontPacks[sizeKey];
+  if (!pack) throw new Error(`Unknown fontPacks size: ${sizeKey}`);
+  return {
+    fontFamily: dmSans[weight],
+    fontSize: pack.fontSize,
+    lineHeight: pack.lineHeight,
+    letterSpacing: pack.letterSpacing,
+    fontVariant: ALL_STYLISTIC_VARIANTS,
+    ...(IS_WEB && { fontFeatureSettings: ALL_STYLISTIC_FEATURES }),
+  };
+}
 
 // Returns a style object for the given proposed role + weight, with all
 // DM Sans stylistic alternates (ss01-ss07) enabled.

@@ -197,8 +197,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   sectionExport: {
-    fontFamily: 'Menlo',
-    fontSize: 11,
+    ...proposedTextStyle('label', 'regular'),
     marginTop: 8,
     marginBottom: 12,
   },
