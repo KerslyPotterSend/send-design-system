@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { base, content, layerTokens } from '../theme/colors';
-import { proposedTextStyle } from '../theme/typography';
+import { currentTextStyle } from '../theme/typography';
 
 const SECTIONS = [
   { key: 'Colors', subtitle: 'Base, brand, layer & content tokens', ready: true },
@@ -52,12 +52,12 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   title: {
-    ...proposedTextStyle('headline-medium', 'bold'),
+    ...currentTextStyle('7', 'bold'),
     color: contentTokens.contentPrimary,
     marginTop: 8,
   },
   subtitle: {
-    ...proposedTextStyle('body-medium', 'regular'),
+    ...currentTextStyle('3', 'regular'),
     color: contentTokens.contentSecondary,
     marginTop: 6,
     marginBottom: 24,
@@ -84,16 +84,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemTitle: {
-    ...proposedTextStyle('body-large', 'semiBold'),
+    ...currentTextStyle('4', 'semiBold'),
     color: contentTokens.contentPrimary,
   },
   itemSubtitle: {
-    ...proposedTextStyle('body-small', 'regular'),
+    ...currentTextStyle('2', 'regular'),
     color: contentTokens.contentSecondary,
     marginTop: 2,
   },
   itemChevron: {
-    ...proposedTextStyle('title-large', 'medium'),
+    ...currentTextStyle('5', 'medium'),
     color: contentTokens.contentTertiary,
   },
 });

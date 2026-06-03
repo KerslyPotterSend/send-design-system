@@ -7,8 +7,6 @@ import {
   fontPacks,
   headingDefaults,
   paragraphDefaults,
-  proposedScale,
-  proposedTextStyle,
   stylisticSets,
   weights,
 } from '../theme/typography';
@@ -17,8 +15,6 @@ const isWeb = Platform.OS === 'web';
 const MODES = ['light', 'dark'];
 
 const SIZE_KEYS = Object.keys(fontPacks);
-const ALL_STYLISTIC_VARIANTS = stylisticSets.map((s) => s.name);
-const ALL_STYLISTIC_FEATURES = stylisticSets.map((s) => `"${s.otFeature}"`).join(', ');
 const WEIGHT_ENTRIES = [
   { key: 'regular', label: 'Regular', token: '$regular', value: weights.regular, family: dmSans.regular },
   { key: 'medium', label: 'Medium', token: '$medium', value: weights.medium, family: dmSans.medium },
@@ -31,8 +27,7 @@ export default function TypographyScreen({
   onScroll,
   topInset = 0,
 }) {
-  const [internalMode, setInternalMode] = useState('light');
-  const [view, setView] = useState('current');
+  const [internalMode, setInternalMode] = useState('dark');
   const isControlled = modeProp !== undefined;
   const mode = isControlled ? modeProp : internalMode;
   const setMode = isControlled ? onModeChange : setInternalMode;
@@ -50,7 +45,7 @@ export default function TypographyScreen({
   const secondary = contentTokens.contentSecondary;
   const tertiary = contentTokens.contentTertiary;
   const codeColor = isDark ? brandPalette.brand7 : brandPalette.brand8;
-  const dividerColor = layer.layer1Background;
+  const dividerColor = layer.layer2BorderColor;
 
   return (
     <View style={[styles.container, { backgroundColor: pageBg }]}>
@@ -76,89 +71,14 @@ export default function TypographyScreen({
           </View>
         )}
 
-        {/* Current vs Proposed tab control */}
-        <View style={[styles.tabBar, { borderBottomColor: cardBorder }]}>
-          <TabButton
-            label="Current"
-            active={view === 'current'}
-            isDark={isDark}
-            onPress={() => setView('current')}
-          />
-          <TabButton
-            label="Proposed"
-            active={view === 'proposed'}
-            isDark={isDark}
-            onPress={() => setView('proposed')}
-          />
-        </View>
-
-        {view === 'proposed' ? (
-          <>
-            <SectionCard cardBg={cardBg} cardBorder={cardBorder}>
-              <SectionHeader
-                title="Proposed scale"
-                description="Semantic role names · negative letter-spacing at display sizes"
-                code="import { proposedScale } from 'theme/typography'"
-                primary={primary}
-                secondary={secondary}
-              />
-              <View style={styles.list}>
-                {proposedScale.map((entry, i) => (
-                  <ProposedRow
-                    key={entry.name}
-                    entry={entry}
-                    isLast={i === proposedScale.length - 1}
-                    primary={primary}
-                    secondary={secondary}
-                    tertiary={tertiary}
-                    dividerColor={dividerColor}
-                  />
-                ))}
-              </View>
-            </SectionCard>
-
-            <SectionCard cardBg={cardBg} cardBorder={cardBorder}>
-              <SectionHeader
-                title="Stylistic alternates"
-                description="DM Sans OpenType stylistic sets — letterform swaps available via fontVariant"
-                code="fontVariant: ['stylistic-one'] // → font-feature-settings: 'ss01'"
-                primary={primary}
-                secondary={secondary}
-              />
-
-              <View style={[styles.stylisticHeader, { borderBottomColor: dividerColor }]}>
-                <Text style={[styles.stylisticHeaderCell, styles.stylisticCol1, { color: tertiary }]}>CSS / Tamagui</Text>
-                <Text style={[styles.stylisticHeaderCell, styles.stylisticCol2, { color: tertiary }]}>OT feature</Text>
-                <Text style={[styles.stylisticHeaderCell, styles.stylisticCol3, { color: tertiary }]}>Figma label</Text>
-                <Text style={[styles.stylisticHeaderCell, styles.stylisticCol4, { color: tertiary }]}>default → alternate</Text>
-              </View>
-
-              {stylisticSets.map((entry, i) => (
-                <StylisticRow
-                  key={entry.name}
-                  entry={entry}
-                  isLast={i === stylisticSets.length - 1}
-                  primary={primary}
-                  secondary={secondary}
-                  tertiary={tertiary}
-                  codeColor={codeColor}
-                  dividerColor={dividerColor}
-                />
-              ))}
-            </SectionCard>
-          </>
-        ) : (
-          <>
-
         {/* Size scale */}
-        <SectionCard cardBg={cardBg} cardBorder={cardBorder}>
+        <SectionCard cardBg={cardBg}>
           <SectionHeader
             title="Size scale"
             description="fontPacks — keyed string sizes 1 → 11"
             code="import { fontPacks } from 'theme/typography'"
             primary={primary}
             secondary={secondary}
-            current
           />
           <View style={styles.list}>
             {SIZE_KEYS.map((key, i) => {
@@ -168,7 +88,7 @@ export default function TypographyScreen({
                   key={key}
                   style={[
                     styles.sizeRow,
-                    i < SIZE_KEYS.length - 1 && { borderBottomColor: dividerColor, borderBottomWidth: 1 },
+                    i < SIZE_KEYS.length - 1 && { borderBottomColor: dividerColor, borderBottomWidth: 0.5 },
                   ]}
                 >
                   <View style={styles.sizeMetaRow}>
@@ -197,14 +117,13 @@ export default function TypographyScreen({
         </SectionCard>
 
         {/* Heading vs Paragraph */}
-        <SectionCard cardBg={cardBg} cardBorder={cardBorder}>
+        <SectionCard cardBg={cardBg}>
           <SectionHeader
             title="Heading & Paragraph"
             description="Defaults applied when no override is passed"
             code="import { Heading, Paragraph } from '@my/ui/components/Texts/Text'"
             primary={primary}
             secondary={secondary}
-            current
           />
 
           <View style={[styles.defaultRow, { borderColor: dividerColor }]}>
@@ -267,14 +186,13 @@ export default function TypographyScreen({
         </SectionCard>
 
         {/* Weights */}
-        <SectionCard cardBg={cardBg} cardBorder={cardBorder}>
+        <SectionCard cardBg={cardBg}>
           <SectionHeader
             title="Weights"
             description="Always set fontWeight explicitly. No implicit defaults."
             code="fontWeight: '$regular' | '$medium' | '$semiBold'"
             primary={primary}
             secondary={secondary}
-            current
           />
           <View style={styles.list}>
             {WEIGHT_ENTRIES.map((w, i) => (
@@ -282,7 +200,7 @@ export default function TypographyScreen({
                 key={w.key}
                 style={[
                   styles.weightRow,
-                  i < WEIGHT_ENTRIES.length - 1 && { borderBottomColor: dividerColor, borderBottomWidth: 1 },
+                  i < WEIGHT_ENTRIES.length - 1 && { borderBottomColor: dividerColor, borderBottomWidth: 0.5 },
                 ]}
               >
                 <View style={styles.weightMeta}>
@@ -306,14 +224,44 @@ export default function TypographyScreen({
           </View>
         </SectionCard>
 
+        {/* Stylistic alternates */}
+        <SectionCard cardBg={cardBg}>
+          <SectionHeader
+            title="Stylistic alternates"
+            description="DM Sans OpenType stylistic sets — letterform swaps available via fontVariant"
+            code="fontVariant: ['stylistic-one'] // → font-feature-settings: 'ss01'"
+            primary={primary}
+            secondary={secondary}
+          />
+
+          <View style={[styles.stylisticHeader, { borderBottomColor: dividerColor }]}>
+            <Text style={[styles.stylisticHeaderCell, styles.stylisticCol1, { color: tertiary }]}>CSS / Tamagui</Text>
+            <Text style={[styles.stylisticHeaderCell, styles.stylisticCol2, { color: tertiary }]}>OT feature</Text>
+            <Text style={[styles.stylisticHeaderCell, styles.stylisticCol3, { color: tertiary }]}>Figma label</Text>
+            <Text style={[styles.stylisticHeaderCell, styles.stylisticCol4, { color: tertiary }]}>default → alternate</Text>
+          </View>
+
+          {stylisticSets.map((entry, i) => (
+            <StylisticRow
+              key={entry.name}
+              entry={entry}
+              isLast={i === stylisticSets.length - 1}
+              primary={primary}
+              secondary={secondary}
+              tertiary={tertiary}
+              codeColor={codeColor}
+              dividerColor={dividerColor}
+            />
+          ))}
+        </SectionCard>
+
         {/* Tokens & OpenType */}
-        <SectionCard cardBg={cardBg} cardBorder={cardBorder}>
+        <SectionCard cardBg={cardBg}>
           <SectionHeader
             title="Tokens & OpenType"
             description="How the spec composes underneath"
             primary={primary}
             secondary={secondary}
-            current
           />
           <View style={styles.notesList}>
             <NoteRow
@@ -342,26 +290,21 @@ export default function TypographyScreen({
             />
           </View>
         </SectionCard>
-          </>
-        )}
       </ScrollView>
     </View>
   );
 }
 
-function SectionCard({ children, cardBg, cardBorder }) {
-  return <View style={[styles.section, { backgroundColor: cardBg, borderColor: cardBorder }]}>{children}</View>;
+function SectionCard({ children, cardBg }) {
+  return <View style={[styles.section, { backgroundColor: cardBg }]}>{children}</View>;
 }
 
-function SectionHeader({ title, description, code, primary, secondary, current }) {
-  const titleStyle = current ? styles.sectionTitleCurrent : styles.sectionTitle;
-  const subtitleStyle = current ? styles.sectionSubtitleCurrent : styles.sectionSubtitle;
-  const exportStyle = current ? styles.sectionExportCurrent : styles.sectionExport;
+function SectionHeader({ title, description, code, primary, secondary }) {
   return (
     <View style={styles.sectionHeader}>
-      <Text style={[titleStyle, { color: primary }]}>{title}</Text>
-      <Text style={[subtitleStyle, { color: secondary }]}>{description}</Text>
-      {code && <Text style={[exportStyle, { color: secondary }]}>{code}</Text>}
+      <Text style={[styles.sectionTitle, { color: primary }]}>{title}</Text>
+      <Text style={[styles.sectionSubtitle, { color: secondary }]}>{description}</Text>
+      {code && <Text style={[styles.sectionExport, { color: secondary }]}>{code}</Text>}
     </View>
   );
 }
@@ -408,50 +351,12 @@ function ToggleButton({ label, active, isDark, onPress }) {
   );
 }
 
-function TabButton({ label, active, isDark, onPress }) {
-  const [hover, setHover] = useState(false);
-  const mode = isDark ? 'dark' : 'light';
-  const primary = content[mode].contentPrimary;
-  const secondary = content[mode].contentTertiary;
-  const accent = content[mode].contentBrand;
-
-  return (
-    <Pressable
-      onPress={onPress}
-      onHoverIn={() => setHover(true)}
-      onHoverOut={() => setHover(false)}
-      style={[
-        styles.tabButton,
-        { borderBottomColor: active ? accent : 'transparent' },
-        isWeb && {
-          cursor: 'pointer',
-          transitionProperty: 'border-color',
-          transitionDuration: '180ms',
-          transitionTimingFunction: 'ease-out',
-        },
-      ]}
-    >
-      <Text
-        style={[
-          styles.tabLabel,
-          {
-            color: active || hover ? primary : secondary,
-            ...(isWeb && { transitionProperty: 'color', transitionDuration: '180ms' }),
-          },
-        ]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 function StylisticRow({ entry, isLast, primary, tertiary, codeColor, dividerColor }) {
   return (
     <View
       style={[
         styles.stylisticRow,
-        !isLast && { borderBottomColor: dividerColor, borderBottomWidth: 1 },
+        !isLast && { borderBottomColor: dividerColor, borderBottomWidth: 0.5 },
       ]}
     >
       <View style={styles.stylisticCol1}>
@@ -488,53 +393,6 @@ function StylisticRow({ entry, isLast, primary, tertiary, codeColor, dividerColo
   );
 }
 
-function ProposedRow({ entry, isLast, primary, secondary, tertiary, dividerColor }) {
-  const lsLabel = entry.letterSpacing === 0 ? '0' : `${entry.letterSpacing}px`;
-  return (
-    <View
-      style={[
-        styles.proposedRow,
-        !isLast && { borderBottomColor: dividerColor, borderBottomWidth: 1 },
-      ]}
-    >
-      <View style={styles.proposedLeft}>
-        <Text style={[styles.proposedName, { color: primary }]}>{entry.name}</Text>
-      </View>
-      <View style={styles.proposedMeta}>
-        <Text style={[styles.proposedMetaText, { color: tertiary }]}>
-          {`${entry.scaleSize}   ${entry.fontSize}/${entry.lineHeight}   ${lsLabel}`}
-        </Text>
-      </View>
-      <View style={styles.proposedRight}>
-        {WEIGHT_ENTRIES.map((w) => (
-          <View key={w.key} style={styles.proposedWeightRow}>
-            <Text style={[styles.proposedWeightLabel, { color: tertiary }]}>
-              {`${w.label} / ${w.value}`}
-            </Text>
-            <Text
-              style={[
-                styles.proposedSample,
-                {
-                  color: primary,
-                  fontFamily: w.family,
-                  fontSize: entry.fontSize,
-                  lineHeight: entry.lineHeight,
-                  letterSpacing: entry.letterSpacing,
-                  fontVariant: ALL_STYLISTIC_VARIANTS,
-                },
-                isWeb && { fontFeatureSettings: ALL_STYLISTIC_FEATURES },
-              ]}
-              numberOfLines={1}
-            >
-              {entry.sample}
-            </Text>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -555,65 +413,10 @@ const styles = StyleSheet.create({
     gap: 4,
     alignSelf: 'flex-start',
   },
-  tabBar: {
-    flexDirection: 'row',
-    gap: 24,
-    borderBottomWidth: 1,
-    marginBottom: 4,
-  },
-  tabButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-    borderBottomWidth: 2,
-    marginBottom: -1,
-  },
-  tabLabel: {
-    ...proposedTextStyle('body-medium', 'semiBold'),
-  },
-  proposedRow: {
-    flexDirection: isWeb ? 'row' : 'column',
-    alignItems: isWeb ? 'flex-start' : 'stretch',
-    paddingVertical: 20,
-    gap: isWeb ? 0 : 12,
-  },
-  proposedLeft: {
-    width: isWeb ? 150 : undefined,
-    paddingRight: 12,
-  },
-  proposedName: {
-    ...proposedTextStyle('label-medium', 'semiBold'),
-  },
-  proposedMeta: {
-    width: isWeb ? 160 : undefined,
-    paddingRight: 12,
-    paddingTop: isWeb ? 2 : 0,
-  },
-  proposedMetaText: {
-    fontFamily: 'Menlo',
-    fontSize: 11,
-  },
-  proposedRight: {
-    flex: isWeb ? 1 : undefined,
-    gap: 14,
-  },
-  proposedWeightRow: {
-    flexDirection: isWeb ? 'row' : 'column',
-    alignItems: isWeb ? 'baseline' : 'flex-start',
-    gap: isWeb ? 16 : 4,
-  },
-  proposedWeightLabel: {
-    fontFamily: 'Menlo',
-    fontSize: 11,
-    width: isWeb ? 130 : undefined,
-    paddingTop: isWeb ? 6 : 0,
-  },
-  proposedSample: {
-    flexShrink: 1,
-  },
   stylisticHeader: {
     flexDirection: isWeb ? 'row' : 'column',
     paddingVertical: 10,
-    borderBottomWidth: 1,
+    borderBottomWidth: 0.5,
     marginBottom: 4,
     gap: isWeb ? 0 : 6,
   },
@@ -652,7 +455,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   stylisticFigmaLabel: {
-    ...proposedTextStyle('label-medium', 'regular'),
+    ...currentTextStyle('2', 'regular'),
   },
   stylisticDemoBlock: {
     minWidth: 110,
@@ -681,37 +484,24 @@ const styles = StyleSheet.create({
     minWidth: 80,
   },
   toggleLabel: {
-    ...proposedTextStyle('body-medium', 'semiBold'),
+    ...currentTextStyle('3', 'semiBold'),
     textTransform: 'capitalize',
   },
   section: {
     borderRadius: 12,
-    borderWidth: 1,
     padding: isWeb ? 24 : 16,
   },
   sectionHeader: {
     marginBottom: 12,
   },
   sectionTitle: {
-    ...proposedTextStyle('title-large', 'bold'),
+    ...currentTextStyle('5', 'medium'),
   },
   sectionSubtitle: {
-    ...proposedTextStyle('body-medium', 'regular'),
-    marginTop: 4,
-  },
-  sectionExport: {
-    fontFamily: dmSans.regular,
-    fontSize: 11,
-    marginTop: 8,
-  },
-  sectionTitleCurrent: {
-    ...currentTextStyle('5', 'bold'),
-  },
-  sectionSubtitleCurrent: {
     ...currentTextStyle('3', 'regular'),
     marginTop: 4,
   },
-  sectionExportCurrent: {
+  sectionExport: {
     ...currentTextStyle('1', 'regular'),
     marginTop: 8,
   },
@@ -739,7 +529,7 @@ const styles = StyleSheet.create({
   },
   defaultRow: {
     paddingVertical: 16,
-    borderBottomWidth: 1,
+    borderBottomWidth: 0.5,
   },
   defaultMeta: {
     gap: 4,

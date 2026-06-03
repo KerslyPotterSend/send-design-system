@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { content, layerTokens } from '../theme/colors';
-import { proposedTextStyle } from '../theme/typography';
+import { currentTextStyle } from '../theme/typography';
 
 export default function ComingSoonScreen({ route, topInset = 0, mode = 'light' }) {
   const title = route?.params?.title ?? 'Coming soon';
@@ -30,11 +30,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    ...proposedTextStyle('headline-small', 'bold'),
+    ...currentTextStyle('6', 'bold'),
     marginBottom: 8,
   },
   body: {
-    ...proposedTextStyle('body-medium', 'regular'),
+    ...currentTextStyle('3', 'regular'),
     textAlign: 'center',
     maxWidth: 280,
   },

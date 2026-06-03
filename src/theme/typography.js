@@ -9,15 +9,15 @@ const IS_WEB = Platform.OS === 'web';
 export const fontPacks = {
   '1': { fontSize: 10, lineHeight: 16, letterSpacing: 0.1 },
   '2': { fontSize: 12, lineHeight: 16, letterSpacing: 0 },
-  '3': { fontSize: 14, lineHeight: 20, letterSpacing: 0.1 },
+  '3': { fontSize: 14, lineHeight: 20, letterSpacing: -0.1 },
   '4': { fontSize: 16, lineHeight: 24, letterSpacing: 0 },
   '5': { fontSize: 20, lineHeight: 28, letterSpacing: 0 },
-  '6': { fontSize: 24, lineHeight: 32, letterSpacing: 0.1 },
+  '6': { fontSize: 24, lineHeight: 32, letterSpacing: -0.1 },
   '7': { fontSize: 32, lineHeight: 40, letterSpacing: 0 },
-  '8': { fontSize: 40, lineHeight: 48, letterSpacing: 1 },
-  '9': { fontSize: 48, lineHeight: 56, letterSpacing: 1.1 },
-  '10': { fontSize: 56, lineHeight: 64, letterSpacing: 1.4 },
-  '11': { fontSize: 64, lineHeight: 72, letterSpacing: 1.5 },
+  '8': { fontSize: 40, lineHeight: 48, letterSpacing: -1 },
+  '9': { fontSize: 48, lineHeight: 56, letterSpacing: -1.1 },
+  '10': { fontSize: 56, lineHeight: 64, letterSpacing: -1.4 },
+  '11': { fontSize: 64, lineHeight: 72, letterSpacing: -1.5 },
 };
 
 export const weights = {
@@ -56,29 +56,8 @@ export const stylisticSets = [
   { name: 'stylistic-seven', otFeature: 'ss07', label: 'Alternative Numbers',     sample: '0123456789' },
 ];
 
-// Proposed scale — semantic role names mapped onto the size scale.
-// Tracking ramps from slightly positive at label sizes (legibility) to
-// aggressively negative at display sizes (~3-5% of font size).
-export const proposedScale = [
-  { name: 'label',           scaleSize: 1,  fontSize: 10, lineHeight: 16, letterSpacing: 0.2,  sample: 'The quick brown fox jumps over the lazy dog' },
-  { name: 'label-medium',    scaleSize: 2,  fontSize: 12, lineHeight: 16, letterSpacing: 0.1,  sample: 'The quick brown fox jumps over the lazy dog' },
-  { name: 'body-small',      scaleSize: 2,  fontSize: 12, lineHeight: 16, letterSpacing: 0,    sample: 'The quick brown fox jumps over the lazy dog' },
-  { name: 'body-medium',     scaleSize: 3,  fontSize: 14, lineHeight: 20, letterSpacing: -0.2, sample: 'The quick brown fox jumps over' },
-  { name: 'body-large',      scaleSize: 4,  fontSize: 16, lineHeight: 24, letterSpacing: -0.3, sample: 'Send money to anyone, anywhere' },
-  { name: 'title-medium',    scaleSize: 4,  fontSize: 16, lineHeight: 24, letterSpacing: -0.4, sample: 'Send money to anyone, anywhere' },
-  { name: 'title-large',     scaleSize: 5,  fontSize: 20, lineHeight: 28, letterSpacing: -0.6, sample: 'Send money to anyone' },
-  { name: 'headline-small',  scaleSize: 6,  fontSize: 24, lineHeight: 32, letterSpacing: -0.8, sample: 'Send money' },
-  { name: 'headline-medium', scaleSize: 7,  fontSize: 32, lineHeight: 40, letterSpacing: -1.2, sample: 'Send money' },
-  { name: 'headline-large',  scaleSize: 8,  fontSize: 40, lineHeight: 48, letterSpacing: -1.6, sample: 'Send money' },
-  { name: 'display-small',   scaleSize: 9,  fontSize: 48, lineHeight: 56, letterSpacing: -2,   sample: 'Send money' },
-  { name: 'display-medium',  scaleSize: 10, fontSize: 56, lineHeight: 64, letterSpacing: -2.5, sample: 'Send money' },
-  { name: 'display-large',   scaleSize: 11, fontSize: 64, lineHeight: 72, letterSpacing: -3,   sample: 'Send money' },
-];
-
 export const ALL_STYLISTIC_VARIANTS = stylisticSets.map((s) => s.name);
 export const ALL_STYLISTIC_FEATURES = stylisticSets.map((s) => `"${s.otFeature}"`).join(', ');
-
-const proposedByName = Object.fromEntries(proposedScale.map((s) => [s.name, s]));
 
 // Returns a style object for the given current spec size key + weight, with all
 // DM Sans stylistic alternates (ss01-ss07) enabled.
@@ -90,21 +69,6 @@ export function currentTextStyle(sizeKey, weight = 'regular') {
     fontSize: pack.fontSize,
     lineHeight: pack.lineHeight,
     letterSpacing: pack.letterSpacing,
-    fontVariant: ALL_STYLISTIC_VARIANTS,
-    ...(IS_WEB && { fontFeatureSettings: ALL_STYLISTIC_FEATURES }),
-  };
-}
-
-// Returns a style object for the given proposed role + weight, with all
-// DM Sans stylistic alternates (ss01-ss07) enabled.
-export function proposedTextStyle(roleName, weight = 'regular') {
-  const role = proposedByName[roleName];
-  if (!role) throw new Error(`Unknown proposed role: ${roleName}`);
-  return {
-    fontFamily: dmSans[weight],
-    fontSize: role.fontSize,
-    lineHeight: role.lineHeight,
-    letterSpacing: role.letterSpacing,
     fontVariant: ALL_STYLISTIC_VARIANTS,
     ...(IS_WEB && { fontFeatureSettings: ALL_STYLISTIC_FEATURES }),
   };

@@ -1,22 +1,22 @@
 import { useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import Button from '../components/Button';
 import { base, content, layerTokens } from '../theme/colors';
-import { proposedTextStyle } from '../theme/typography';
+import { currentTextStyle } from '../theme/typography';
 
 const isWeb = Platform.OS === 'web';
 const MODES = ['light', 'dark'];
 
-const SPEC_ROWS = [
-  ['Variant', 'Primary'],
-  ['Size', 'L'],
-  ['Height', '44 px'],
-  ['Padding', '16 horizontal · 8 vertical'],
-  ['Corner radius', '8 px'],
-  ['Background', 'brandTokens.brandBackground'],
-  ['Label color', 'brandTokens.brandColor'],
-  ['Label typography', 'body-large · medium'],
+const SIZES = ['L', 'M', 'S'];
+
+const STATE_OPTIONS = [
+  { value: 'default', label: 'Default' },
+  { value: 'hover', label: 'Hover' },
+  { value: 'pressed', label: 'Press' },
+  { value: 'disabled', label: 'Disabled' },
 ];
+
+const VARIANT_OPTIONS = [{ value: 'primary', label: 'Primary' }];
 
 export default function ButtonsScreen({
   mode: modeProp,
@@ -24,22 +24,29 @@ export default function ButtonsScreen({
   onScroll,
   topInset = 0,
 }) {
-  const [internalMode, setInternalMode] = useState('light');
+  const [internalMode, setInternalMode] = useState('dark');
+  const [variant, setVariant] = useState('primary');
+  const [state, setState] = useState('default');
+  const [rounded, setRounded] = useState(false);
+  const [iconOnly, setIconOnly] = useState(false);
+
   const isControlled = modeProp !== undefined;
   const mode = isControlled ? modeProp : internalMode;
   const setMode = isControlled ? onModeChange : setInternalMode;
   const isDark = mode === 'dark';
 
   const layer = layerTokens[mode];
-  const contentTokens = content[mode];
-  const baseTokens = base[mode];
+  const tokens = content[mode];
 
   const pageBg = layer.layer1Background;
   const cardBg = layer.layer2Background;
-  const cardBorder = isDark ? baseTokens.base6 : baseTokens.base3;
-  const primary = contentTokens.contentPrimary;
-  const secondary = contentTokens.contentSecondary;
-  const tertiary = contentTokens.contentTertiary;
+  const cardBorder = layer.layer2BorderColor;
+  const dividerColor = layer.layer2BorderColor;
+  const titleColor = tokens.contentPrimary;
+  const subColor = tokens.contentSecondary;
+  const chipIdleBg = layer.layer3Background;
+  const chipActiveBg = isDark ? base.dark.base6 : base.light.base11;
+  const chipActiveColor = isDark ? base.dark.base12 : base.light.base1;
 
   return (
     <View style={[styles.container, { backgroundColor: pageBg }]}>
@@ -51,7 +58,7 @@ export default function ButtonsScreen({
         {!isControlled && (
           <View style={[styles.toggleBar, { backgroundColor: cardBg, borderColor: cardBorder }]}>
             {MODES.map((m) => (
-              <ToggleButton
+              <ModeToggleButton
                 key={m}
                 label={m}
                 active={mode === m}
@@ -62,136 +69,140 @@ export default function ButtonsScreen({
           </View>
         )}
 
-        <SectionCard cardBg={cardBg} cardBorder={cardBorder}>
-          <SectionHeader
-            title="Primary · L · Default"
-            description="The primary call-to-action button. Hugs content horizontally, fixed 44px height."
-            code={`<Button variant="primary" size="L">Send money</Button>`}
-            primary={primary}
-            secondary={secondary}
-          />
-
-          <View style={[styles.demoStage, { borderColor: cardBorder, backgroundColor: pageBg }]}>
-            <Button mode={mode}>Send money</Button>
-          </View>
-        </SectionCard>
-
-        <SectionCard cardBg={cardBg} cardBorder={cardBorder}>
-          <SectionHeader
-            title="States"
-            description="Hover, press, and disabled — driven by brandTokens.brandBackground* tokens."
-            primary={primary}
-            secondary={secondary}
-          />
-
-          <View style={styles.stateGrid}>
-            <StateCell label="Default" cardBorder={cardBorder} pageBg={pageBg} tertiary={tertiary}>
-              <Button mode={mode}>Send money</Button>
-            </StateCell>
-            <StateCell label="Hover (try it)" cardBorder={cardBorder} pageBg={pageBg} tertiary={tertiary}>
-              <Button mode={mode}>Send money</Button>
-            </StateCell>
-            <StateCell label="Disabled" cardBorder={cardBorder} pageBg={pageBg} tertiary={tertiary}>
-              <Button mode={mode} disabled>Send money</Button>
-            </StateCell>
-          </View>
-        </SectionCard>
-
-        <SectionCard cardBg={cardBg} cardBorder={cardBorder}>
-          <SectionHeader
-            title="Sizes"
-            description="L is the default. M and S follow the same vertical rhythm but step down padding + label size."
-            primary={primary}
-            secondary={secondary}
-          />
-
-          <View style={styles.sizeRow}>
-            <SizeCell label="L · 44" tertiary={tertiary}>
-              <Button mode={mode} size="L">Send money</Button>
-            </SizeCell>
-            <SizeCell label="M · 32" tertiary={tertiary}>
-              <Button mode={mode} size="M">Send money</Button>
-            </SizeCell>
-            <SizeCell label="S · 24" tertiary={tertiary}>
-              <Button mode={mode} size="S">Send money</Button>
-            </SizeCell>
-          </View>
-        </SectionCard>
-
-        <SectionCard cardBg={cardBg} cardBorder={cardBorder}>
-          <SectionHeader
-            title="Rounded"
-            description="When `rounded` is true, corner radius equals height / 2 — a pill."
-            primary={primary}
-            secondary={secondary}
-          />
+        <View style={[styles.section, { backgroundColor: cardBg }]}>
+          <Text style={[styles.sectionTitle, { color: titleColor }]}>Button</Text>
+          <Text style={[styles.sectionSubtitle, { color: subColor }]}>
+            Drive every Figma variant from the controls below.
+          </Text>
 
           <View style={styles.demoStage}>
-            <Button mode={mode} rounded>Send money</Button>
-          </View>
-        </SectionCard>
-
-        <SectionCard cardBg={cardBg} cardBorder={cardBorder}>
-          <SectionHeader
-            title="Spec"
-            description="Property mapping from the Figma component."
-            primary={primary}
-            secondary={secondary}
-          />
-
-          <View style={styles.specList}>
-            {SPEC_ROWS.map(([label, value], i) => (
-              <View
-                key={label}
-                style={[
-                  styles.specRow,
-                  i < SPEC_ROWS.length - 1 && { borderBottomColor: cardBorder, borderBottomWidth: 1 },
-                ]}
-              >
-                <Text style={[styles.specLabel, { color: secondary }]}>{label}</Text>
-                <Text style={[styles.specValue, { color: primary }]}>{value}</Text>
+            {SIZES.map((s) => (
+              <View key={s} style={styles.demoSlot}>
+                <Text style={[styles.demoLabel, { color: subColor }]}>{s}</Text>
+                <Button
+                  mode={mode}
+                  variant={variant}
+                  size={s}
+                  state={state}
+                  rounded={rounded}
+                  iconOnly={iconOnly}
+                >
+                  Send money
+                </Button>
               </View>
             ))}
           </View>
-        </SectionCard>
+        </View>
+
+        <View style={[styles.section, { backgroundColor: cardBg }]}>
+          <Text style={[styles.sectionTitle, { color: titleColor }]}>Current variant</Text>
+          <Text style={[styles.sectionSubtitle, { color: subColor }]}>
+            Mirrors the Figma component property panel.
+          </Text>
+
+          <View style={styles.controls}>
+            <Segmented
+              label="Variant"
+              options={VARIANT_OPTIONS}
+              value={variant}
+              onChange={setVariant}
+              labelColor={subColor}
+              chipIdleBg={chipIdleBg}
+              chipIdleColor={titleColor}
+              chipActiveBg={chipActiveBg}
+              chipActiveColor={chipActiveColor}
+              dividerColor={dividerColor}
+            />
+            <Segmented
+              label="State"
+              options={STATE_OPTIONS}
+              value={state}
+              onChange={setState}
+              labelColor={subColor}
+              chipIdleBg={chipIdleBg}
+              chipIdleColor={titleColor}
+              chipActiveBg={chipActiveBg}
+              chipActiveColor={chipActiveColor}
+              dividerColor={dividerColor}
+            />
+            <SwitchRow
+              label="Rounded"
+              value={rounded}
+              onChange={setRounded}
+              labelColor={subColor}
+              valueColor={titleColor}
+              dividerColor={dividerColor}
+            />
+            <SwitchRow
+              label="Icon Only"
+              value={iconOnly}
+              onChange={setIconOnly}
+              labelColor={subColor}
+              valueColor={titleColor}
+              dividerColor={dividerColor}
+              isLast
+            />
+          </View>
+        </View>
+
       </ScrollView>
     </View>
   );
 }
 
-function SectionCard({ children, cardBg, cardBorder }) {
-  return <View style={[styles.section, { backgroundColor: cardBg, borderColor: cardBorder }]}>{children}</View>;
-}
-
-function SectionHeader({ title, description, code, primary, secondary }) {
+function Segmented({ label, options, value, onChange, labelColor, chipIdleBg, chipIdleColor, chipActiveBg, chipActiveColor, dividerColor }) {
   return (
-    <View style={styles.sectionHeader}>
-      <Text style={[styles.sectionTitle, { color: primary }]}>{title}</Text>
-      <Text style={[styles.sectionSubtitle, { color: secondary }]}>{description}</Text>
-      {code && <Text style={[styles.sectionExport, { color: secondary }]}>{code}</Text>}
+    <View style={[styles.controlRow, { borderBottomColor: dividerColor }]}>
+      <Text style={[styles.controlLabel, { color: labelColor }]}>{label}</Text>
+      <View style={styles.chipGroup}>
+        {options.map((opt) => {
+          const active = opt.value === value;
+          return (
+            <Pressable
+              key={opt.value}
+              onPress={() => onChange(opt.value)}
+              style={[
+                styles.chip,
+                {
+                  backgroundColor: active ? chipActiveBg : chipIdleBg,
+                },
+                isWeb && { cursor: 'pointer' },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.chipLabel,
+                  { color: active ? chipActiveColor : chipIdleColor },
+                ]}
+              >
+                {opt.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
 
-function StateCell({ label, children, cardBorder, pageBg, tertiary }) {
+function SwitchRow({ label, value, onChange, labelColor, valueColor, dividerColor, isLast }) {
   return (
-    <View style={[styles.stateCell, { borderColor: cardBorder, backgroundColor: pageBg }]}>
-      <Text style={[styles.stateCellLabel, { color: tertiary }]}>{label}</Text>
-      {children}
+    <View
+      style={[
+        styles.controlRow,
+        !isLast && { borderBottomColor: dividerColor, borderBottomWidth: 0.5 },
+      ]}
+    >
+      <Text style={[styles.controlLabel, { color: labelColor }]}>{label}</Text>
+      <View style={styles.switchRight}>
+        <Text style={[styles.switchValue, { color: valueColor }]}>{value ? 'true' : 'false'}</Text>
+        <Switch value={value} onValueChange={onChange} />
+      </View>
     </View>
   );
 }
 
-function SizeCell({ label, children, tertiary }) {
-  return (
-    <View style={styles.sizeCell}>
-      <Text style={[styles.sizeCellLabel, { color: tertiary }]}>{label}</Text>
-      {children}
-    </View>
-  );
-}
-
-function ToggleButton({ label, active, isDark, onPress }) {
+function ModeToggleButton({ label, active, isDark, onPress }) {
   const [hover, setHover] = useState(false);
   const mode = isDark ? 'dark' : 'light';
   const activeBg = isDark ? base.dark.base6 : content.light.contentPrimary;
@@ -204,13 +215,13 @@ function ToggleButton({ label, active, isDark, onPress }) {
       onHoverIn={() => setHover(true)}
       onHoverOut={() => setHover(false)}
       style={[
-        styles.toggleButton,
+        styles.modeToggleButton,
         active && { backgroundColor: activeBg },
         !active && hover && { backgroundColor: hoverBg },
         isWeb && { cursor: 'pointer' },
       ]}
     >
-      <Text style={[styles.toggleLabel, { color: active ? '#FFFFFF' : idleColor }]}>{label}</Text>
+      <Text style={[styles.modeToggleLabel, { color: active ? '#FFFFFF' : idleColor }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -233,86 +244,80 @@ const styles = StyleSheet.create({
     gap: 4,
     alignSelf: 'flex-start',
   },
-  toggleButton: {
+  modeToggleButton: {
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: 'center',
     minWidth: 80,
   },
-  toggleLabel: {
-    ...proposedTextStyle('body-medium', 'semiBold'),
+  modeToggleLabel: {
+    ...currentTextStyle('3', 'semiBold'),
     textTransform: 'capitalize',
   },
   section: {
     borderRadius: 12,
-    borderWidth: 1,
     padding: isWeb ? 24 : 16,
   },
-  sectionHeader: { marginBottom: 16 },
   sectionTitle: {
-    ...proposedTextStyle('title-large', 'bold'),
+    ...currentTextStyle('5', 'medium'),
   },
   sectionSubtitle: {
-    ...proposedTextStyle('body-medium', 'regular'),
+    ...currentTextStyle('3', 'regular'),
     marginTop: 4,
-  },
-  sectionExport: {
-    ...proposedTextStyle('label', 'regular'),
-    marginTop: 8,
+    marginBottom: 16,
   },
   demoStage: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'flex-end',
+    gap: 32,
     paddingVertical: 32,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'transparent',
+  },
+  demoSlot: {
     alignItems: 'flex-start',
+    gap: 10,
   },
-  stateGrid: {
-    flexDirection: isWeb ? 'row' : 'column',
-    gap: 12,
-    flexWrap: 'wrap',
-  },
-  stateCell: {
-    flex: isWeb ? 1 : undefined,
-    minWidth: isWeb ? 220 : undefined,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 12,
-    alignItems: 'flex-start',
-  },
-  stateCellLabel: {
-    ...proposedTextStyle('label-medium', 'semiBold'),
+  demoLabel: {
+    ...currentTextStyle('1', 'regular'),
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
-  sizeRow: {
-    flexDirection: isWeb ? 'row' : 'column',
-    gap: 24,
+  controls: {
+    marginTop: 4,
+  },
+  controlRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    borderBottomWidth: 0.5,
+    gap: 16,
+  },
+  controlLabel: {
+    ...currentTextStyle('3', 'regular'),
+    minWidth: 120,
+  },
+  chipGroup: {
+    flexDirection: 'row',
+    gap: 6,
     flexWrap: 'wrap',
-    alignItems: isWeb ? 'flex-end' : 'flex-start',
+    justifyContent: 'flex-end',
   },
-  sizeCell: { gap: 8, alignItems: 'flex-start' },
-  sizeCellLabel: {
-    ...proposedTextStyle('label-medium', 'semiBold'),
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
+  chip: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 999,
   },
-  specList: { marginTop: 4 },
-  specRow: {
-    flexDirection: isWeb ? 'row' : 'column',
-    paddingVertical: 12,
-    gap: isWeb ? 24 : 4,
+  chipLabel: {
+    ...currentTextStyle('2', 'medium'),
   },
-  specLabel: {
-    ...proposedTextStyle('body-small', 'regular'),
-    width: isWeb ? 160 : undefined,
+  switchRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  specValue: {
-    ...proposedTextStyle('body-small', 'semiBold'),
-    flex: isWeb ? 1 : undefined,
+  switchValue: {
+    ...currentTextStyle('3', 'regular'),
   },
 });

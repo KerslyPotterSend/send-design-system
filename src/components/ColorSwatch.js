@@ -1,20 +1,11 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { base, content } from '../theme/colors';
-import { proposedTextStyle } from '../theme/typography';
+import { content, layerTokens } from '../theme/colors';
+import { currentTextStyle } from '../theme/typography';
 
-function isLight(hex) {
-  const c = hex.replace('#', '');
-  const r = parseInt(c.slice(0, 2), 16);
-  const g = parseInt(c.slice(2, 4), 16);
-  const b = parseInt(c.slice(4, 6), 16);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.6;
-}
-
-export default function ColorSwatch({ name, hex, onSurface }) {
+export default function ColorSwatch({ name, hex, onSurface, subname }) {
   const isDark = onSurface === 'dark';
   const mode = isDark ? 'dark' : 'light';
-  const borderColor = isLight(hex) ? base.light.base3 : 'transparent';
+  const borderColor = layerTokens[mode].layer3BorderColor;
   const labelColor = content[mode].contentPrimary;
   const subColor = content[mode].contentSecondary;
 
@@ -25,6 +16,11 @@ export default function ColorSwatch({ name, hex, onSurface }) {
         <Text style={[styles.name, { color: labelColor }]} numberOfLines={1}>
           {name}
         </Text>
+        {subname && (
+          <Text style={[styles.subname, { color: subColor }]} numberOfLines={1}>
+            {subname}
+          </Text>
+        )}
         <Text style={[styles.hex, { color: subColor }]}>{hex.toUpperCase()}</Text>
       </View>
     </View>
@@ -41,17 +37,22 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 8,
-    borderWidth: 1,
+    borderWidth: 0.5,
+    borderStyle: 'solid',
     marginRight: 12,
   },
   meta: {
     flex: 1,
   },
   name: {
-    ...proposedTextStyle('body-medium', 'medium'),
+    ...currentTextStyle('3', 'regular'),
+  },
+  subname: {
+    ...currentTextStyle('1', 'regular'),
+    marginTop: 1,
   },
   hex: {
-    ...proposedTextStyle('body-small', 'regular'),
+    ...currentTextStyle('1', 'regular'),
     marginTop: 2,
   },
 });

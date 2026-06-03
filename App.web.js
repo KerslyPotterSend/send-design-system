@@ -13,9 +13,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Logo from './src/components/Logo';
 import ButtonsScreen from './src/screens/ButtonsScreen';
 import ColorsScreen from './src/screens/ColorsScreen';
+import SizesScreen from './src/screens/SizesScreen';
 import TypographyScreen from './src/screens/TypographyScreen';
 import { base, brand, content, layerTokens } from './src/theme/colors';
-import { proposedTextStyle } from './src/theme/typography';
+import { currentTextStyle } from './src/theme/typography';
 const HEADER_HEIGHT = 72;
 const SIDEBAR_WIDTH = 260;
 
@@ -26,6 +27,13 @@ const SECTIONS = [
     label: 'Typography',
     subtitle: 'Type scale',
     component: TypographyScreen,
+    ready: true,
+  },
+  {
+    id: 'sizes',
+    label: 'Sizes',
+    subtitle: 'Radius, spacing, border',
+    component: SizesScreen,
     ready: true,
   },
   {
@@ -62,8 +70,9 @@ export default function App() {
     DMSans_700Bold,
   });
   const [activeId, setActiveId] = useState('colors');
-  const [mode, setMode] = useState('light');
+  const [mode, setMode] = useState('dark');
   const [scrollY, setScrollY] = useState(0);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
 
   const allSections = flattenSections(SECTIONS);
   const active = allSections.find((s) => s.id === activeId && s.component) ?? allSections.find((s) => s.component);
@@ -74,6 +83,13 @@ export default function App() {
   useEffect(() => {
     setScrollY(0);
   }, [activeId]);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const bg = layerTokens[mode].layer1Background;
+    document.body.style.backgroundColor = bg;
+    document.documentElement.style.backgroundColor = bg;
+  }, [mode]);
 
   if (!fontsLoaded) return null;
 
@@ -99,7 +115,7 @@ export default function App() {
     transitionTimingFunction: 'ease',
   };
 
-  const sidebarBg = isDark ? baseTokens.base2 : baseTokens.base1;
+  const sidebarBg = layer.layer2Background;
   const sidebarBorder = chromeBorder;
   const sidebarHeaderBorder = layer.layer1Background;
   const sidebarMutedColor = contentTokens.contentSecondary;
@@ -107,7 +123,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <View style={styles.shell}>
+      <View style={[styles.shell, { backgroundColor: pageBg }]}>
         <View
           style={[
             styles.sidebar,
@@ -122,13 +138,13 @@ export default function App() {
         >
           <View style={[styles.sidebarHeader, { borderBottomColor: sidebarHeaderBorder }]}>
             <Logo color={isDark ? brand.dark.brand5 : base.light.base12} />
-            <Text style={[styles.brandSub, { color: sidebarMutedColor, marginTop: 8 }]}>design system</Text>
+            <Text style={[styles.brandSub, { color: sidebarMutedColor, marginTop: 8, marginLeft: 12 }]}>Design System</Text>
           </View>
 
-          <Text style={[styles.navSectionLabel, { color: sidebarMutedColor }]}>Foundations</Text>
           <View style={styles.nav}>
             {SECTIONS.map((s) => {
               const childActive = s.children?.some((c) => c.id === activeId);
+              const isExpanded = s.children && (expandedIds.has(s.id) || childActive);
               return (
                 <View key={s.id}>
                   <NavItem
@@ -138,13 +154,22 @@ export default function App() {
                     active={s.id === activeId || childActive}
                     isDark={isDark}
                     onPress={() => {
-                      if (s.component) setActiveId(s.id);
-                      else if (s.children?.[0]) setActiveId(s.children[0].id);
+                      if (s.children) {
+                        setExpandedIds((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(s.id)) next.delete(s.id);
+                          else next.add(s.id);
+                          return next;
+                        });
+                      } else if (s.component) {
+                        setActiveId(s.id);
+                      }
                     }}
                     hasChildren={!!s.children}
                     childActive={childActive}
+                    expanded={isExpanded}
                   />
-                  {s.children && (
+                  {s.children && isExpanded && (
                     <View style={styles.subNav}>
                       {s.children.map((child) => (
                         <SubNavItem
@@ -188,8 +213,10 @@ export default function App() {
               headerWebStyles,
             ]}
           >
-            <Text style={[styles.contentTitle, { color: titleColor }]}>{active.label}</Text>
-            <ModeToggle mode={mode} onChange={setMode} isDark={isDark} />
+            <View style={styles.contentHeaderInner}>
+              <Text style={[styles.contentTitle, { color: titleColor }]}>{active.label}</Text>
+              <ModeToggle mode={mode} onChange={setMode} isDark={isDark} />
+            </View>
           </View>
         </View>
       </View>
@@ -197,32 +224,51 @@ export default function App() {
   );
 }
 
-function NavItem({ label, subtitle, ready, active, isDark, onPress, nested = false, hasChildren = false, childActive = false }) {
+function NavItem({ label, subtitle, ready, active, isDark, onPress, nested = false, hasChildren = false, childActive = false, expanded = false }) {
   const [hover, setHover] = useState(false);
+  const [pressed, setPressed] = useState(false);
 
-  const labelColor = isDark ? '#FFFFFF' : '#1A1A1A';
-  const subtitleColor = isDark ? '#71797B' : '#808080';
-  const idleHoverBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
-  const activeBg = isDark ? 'rgba(255,255,255,0.10)' : '#1A1A1A';
-  const activeLabelColor = '#FFFFFF';
-  const activeSubtitleColor = isDark ? '#A1A5A7' : '#B2B2B2';
+  const mode = isDark ? 'dark' : 'light';
+  const layer = layerTokens[mode];
+  const tokens = content[mode];
+  const labelColor = tokens.contentSecondary;
+  const hoverLabelColor = tokens.contentPrimary;
+  const activeLabelColor = tokens.contentPrimary;
+  const subtitleColor = tokens.contentTertiary;
+  const idleHoverBg = layer.layer2BackgroundHover;
+  const idlePressBg = layer.layer2BackgroundPress;
+  const activeBg = layer.layer2BackgroundFocus;
+  const activeSubtitleColor = tokens.contentSecondary;
   const badgeBg = isDark ? 'rgba(255,255,255,0.06)' : '#F2F2F2';
-  const badgeColor = isDark ? '#A1A5A7' : '#808080';
+  const badgeColor = tokens.contentSecondary;
 
   const showActiveBg = active && !hasChildren;
+  const showActiveLabel = active || childActive;
   const bodyShift = hover && ready && !showActiveBg ? 4 : 0;
+  const navBg = showActiveBg
+    ? activeBg
+    : pressed && ready
+    ? idlePressBg
+    : hover && ready
+    ? idleHoverBg
+    : 'transparent';
 
   return (
     <Pressable
       onPress={onPress}
       onHoverIn={() => setHover(true)}
-      onHoverOut={() => setHover(false)}
+      onHoverOut={() => {
+        setHover(false);
+        setPressed(false);
+      }}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
       disabled={!ready}
       style={[
         styles.navItem,
         nested && { paddingLeft: 22 },
         {
-          backgroundColor: showActiveBg ? activeBg : hover && ready ? idleHoverBg : 'transparent',
+          backgroundColor: navBg,
           opacity: ready ? 1 : 0.55,
           cursor: ready ? 'pointer' : 'default',
           transitionProperty: 'background-color',
@@ -246,7 +292,11 @@ function NavItem({ label, subtitle, ready, active, isDark, onPress, nested = fal
           style={[
             styles.navItemLabel,
             {
-              color: showActiveBg ? activeLabelColor : labelColor,
+              color: showActiveLabel
+                ? activeLabelColor
+                : hover && ready
+                ? hoverLabelColor
+                : labelColor,
               transitionProperty: 'color',
               transitionDuration: '180ms',
             },
@@ -261,8 +311,12 @@ function NavItem({ label, subtitle, ready, active, isDark, onPress, nested = fal
           style={[
             styles.navItemChevron,
             {
-              color: showActiveBg ? activeLabelColor : subtitleColor,
-              transform: [{ rotate: childActive ? '90deg' : '0deg' }],
+              color: showActiveLabel
+                ? activeLabelColor
+                : hover && ready
+                ? hoverLabelColor
+                : subtitleColor,
+              transform: [{ rotate: expanded ? '90deg' : '0deg' }],
               transitionProperty: 'transform, color',
               transitionDuration: '180ms',
             },
@@ -282,8 +336,10 @@ function NavItem({ label, subtitle, ready, active, isDark, onPress, nested = fal
 function SubNavItem({ label, ready, active, isDark, accent, onPress }) {
   const [hover, setHover] = useState(false);
 
-  const idleColor = isDark ? '#A1A5A7' : '#666666';
-  const hoverColor = isDark ? '#FFFFFF' : '#1A1A1A';
+  const mode = isDark ? 'dark' : 'light';
+  const tokens = content[mode];
+  const idleColor = tokens.contentSecondary;
+  const hoverColor = tokens.contentPrimary;
   const labelColor = active ? accent : hover ? hoverColor : idleColor;
 
   return (
@@ -328,8 +384,9 @@ function SubNavItem({ label, ready, active, isDark, accent, onPress }) {
 
 function ModeToggle({ mode, onChange, isDark }) {
   const [hover, setHover] = useState(false);
-  const trackBg = isDark ? base.dark.base5 : base.light.base3;
-  const trackBorder = isDark ? base.dark.base6 : base.light.base3;
+  const mode_ = isDark ? 'dark' : 'light';
+  const trackBg = layerTokens[mode_].layer2Background;
+  const trackBorder = layerTokens[mode_].layer2BorderColor;
   const knobBg = isDark ? base.dark.base12 : base.light.base11;
   const idleIconColor = isDark ? base.dark.base8 : base.light.base6;
   const activeIconColor = isDark ? base.dark.base1 : base.light.base1;
@@ -399,11 +456,9 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     minHeight: '100vh',
-    backgroundColor: '#F7F7F7',
   },
   sidebar: {
     width: SIDEBAR_WIDTH,
-    borderRightWidth: 1,
     paddingVertical: 24,
     paddingHorizontal: 16,
   },
@@ -414,10 +469,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   brandSub: {
-    ...proposedTextStyle('body-small', 'regular'),
+    ...currentTextStyle('2', 'regular'),
   },
   navSectionLabel: {
-    ...proposedTextStyle('label', 'semiBold'),
+    ...currentTextStyle('1', 'semiBold'),
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     paddingHorizontal: 8,
@@ -440,14 +495,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   navItemLabel: {
-    ...proposedTextStyle('body-medium', 'semiBold'),
+    ...currentTextStyle('3', 'regular'),
   },
   navItemSubtitle: {
-    ...proposedTextStyle('label', 'regular'),
+    ...currentTextStyle('1', 'regular'),
     marginTop: 2,
   },
   navItemBadge: {
-    ...proposedTextStyle('label', 'bold'),
+    ...currentTextStyle('1', 'bold'),
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -457,6 +512,7 @@ const styles = StyleSheet.create({
   navItemChevron: {
     fontSize: 18,
     marginLeft: 8,
+    marginRight: 4,
     lineHeight: 18,
   },
   subNav: {
@@ -482,7 +538,7 @@ const styles = StyleSheet.create({
     borderRadius: 1,
   },
   subNavItemLabel: {
-    ...proposedTextStyle('body-medium', 'medium'),
+    ...currentTextStyle('3', 'regular'),
   },
   sidebarFooter: {
     marginTop: 'auto',
@@ -490,7 +546,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   footerText: {
-    ...proposedTextStyle('label', 'regular'),
+    ...currentTextStyle('1', 'regular'),
   },
   contentArea: {
     flex: 1,
@@ -502,15 +558,20 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: HEADER_HEIGHT,
+    zIndex: 10,
+  },
+  contentHeaderInner: {
+    width: '100%',
+    maxWidth: 1200,
+    height: '100%',
     paddingHorizontal: 40,
+    alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    zIndex: 10,
   },
   contentTitle: {
-    ...proposedTextStyle('headline-small', 'bold'),
+    ...currentTextStyle('6', 'medium'),
   },
   modeToggleWrap: {
     position: 'relative',
@@ -523,7 +584,6 @@ const styles = StyleSheet.create({
     width: 84,
     height: 40,
     borderRadius: 999,
-    borderWidth: 1,
     padding: 4,
     position: 'relative',
     cursor: 'pointer',
@@ -541,7 +601,7 @@ const styles = StyleSheet.create({
     pointerEvents: 'none',
   },
   modeTooltipLabel: {
-    ...proposedTextStyle('body-small', 'medium'),
+    ...currentTextStyle('2', 'medium'),
     whiteSpace: 'nowrap',
   },
   modeToggleIconSlot: {

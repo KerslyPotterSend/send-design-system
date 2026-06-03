@@ -1,20 +1,39 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text } from 'react-native';
 import { brandTokens } from '../theme/colors';
-import { proposedTextStyle } from '../theme/typography';
+import { cornerRadius, spacing } from '../theme/sizes';
+import { currentTextStyle } from '../theme/typography';
 
 const isWeb = Platform.OS === 'web';
 
 const SIZE_DIMS = {
-  L: { height: 44, paddingHorizontal: 16, paddingVertical: 8, cornerRadius: 8 },
-  M: { height: 32, paddingHorizontal: 8, paddingVertical: 4, cornerRadius: 8 },
-  S: { height: 24, paddingHorizontal: 4, paddingVertical: 0, cornerRadius: 4 },
-};
-
-const SIZE_TYPOGRAPHY = {
-  L: () => proposedTextStyle('body-large', 'medium'),
-  M: () => proposedTextStyle('body-small', 'medium'),
-  S: () => proposedTextStyle('label-medium', 'medium'),
+  L: {
+    paddingHorizontal: spacing.mobile.L,    // 16
+    paddingVertical: spacing.mobile.S,      // 8
+    height: 44,                             // fixed height
+    fontSize: '4',                          // 16/24 medium
+    cornerRadius: cornerRadius.mobile.S,    // 8
+    iconSize: 20,
+    squareSize: 44,
+  },
+  M: {
+    paddingHorizontal: spacing.mobile.S,    // 8
+    paddingVertical: spacing.mobile.XS,     // 4
+    height: 32,                             // fixed height
+    fontSize: '2',                          // 12/16 medium
+    cornerRadius: cornerRadius.mobile.S,    // 8
+    iconSize: 16,
+    squareSize: 32,
+  },
+  S: {
+    paddingHorizontal: spacing.mobile.S,    // 8
+    paddingVertical: 0,
+    fontSize: '2',                          // 12/16 medium
+    cornerRadius: cornerRadius.mobile.XS,   // 4
+    iconSize: 14,
+    squareSize: 24,
+  },
 };
 
 export default function Button({
@@ -24,47 +43,36 @@ export default function Button({
   mode = 'light',
   rounded = false,
   iconOnly = false,
-  disabled = false,
+  icon = null,
+  state = 'default',  // 'default' | 'hover' | 'pressed' | 'disabled'
   onPress,
 }) {
   const [hover, setHover] = useState(false);
   const [pressed, setPressed] = useState(false);
-  const tokens = brandTokens[mode];
 
+  const interactive = state === 'default';
+  const isDisabled = state === 'disabled';
+  const isPressed = state === 'pressed' || (interactive && pressed);
+  const isHover = state === 'hover' || (interactive && hover);
+
+  const tokens = brandTokens[mode];
   let background = tokens.brandBackground;
-  if (disabled) background = tokens.brandBackgroundDisabled;
-  else if (pressed) background = tokens.brandBackgroundPress;
-  else if (hover) background = tokens.brandBackgroundHover;
+  if (isDisabled) background = tokens.brandBackgroundDisabled;
+  else if (isPressed) background = tokens.brandBackgroundPress;
+  else if (isHover) background = tokens.brandBackgroundHover;
 
   let labelColor = tokens.brandColor;
-  if (disabled) labelColor = tokens.brandColorDisabled;
-  else if (pressed) labelColor = tokens.brandColorPress;
+  if (isDisabled) labelColor = tokens.brandColorDisabled;
+  else if (isPressed) labelColor = tokens.brandColorPress;
 
   const dims = SIZE_DIMS[size];
-  const borderRadius = rounded ? dims.height / 2 : dims.cornerRadius;
-
-  const containerStyle = [
-    styles.base,
-    dims,
-    {
-      backgroundColor: background,
-      borderRadius,
-      opacity: disabled ? 1 : 1,
-    },
-    iconOnly && { width: dims.height, paddingHorizontal: 0 },
-    isWeb && !disabled && { cursor: 'pointer' },
-    isWeb && disabled && { cursor: 'not-allowed' },
-    isWeb && {
-      transitionProperty: 'background-color, color',
-      transitionDuration: '160ms',
-      transitionTimingFunction: 'ease-out',
-    },
-  ];
+  const radius = rounded ? cornerRadius.mobile.Pill : dims.cornerRadius;
+  const iconName = icon ?? 'arrow-forward';
 
   return (
     <Pressable
       accessibilityRole="button"
-      disabled={disabled}
+      disabled={isDisabled}
       onPress={onPress}
       onHoverIn={() => setHover(true)}
       onHoverOut={() => {
@@ -73,9 +81,40 @@ export default function Button({
       }}
       onPressIn={() => setPressed(true)}
       onPressOut={() => setPressed(false)}
-      style={containerStyle}
+      style={[
+        styles.base,
+        iconOnly
+          ? {
+              width: dims.squareSize,
+              height: dims.squareSize,
+              paddingHorizontal: 0,
+              paddingVertical: 0,
+            }
+          : {
+              height: dims.height,
+              paddingHorizontal: dims.paddingHorizontal,
+              paddingVertical: dims.paddingVertical,
+            },
+        {
+          backgroundColor: background,
+          borderRadius: radius,
+        },
+        isWeb && !isDisabled && { cursor: 'pointer' },
+        isWeb && isDisabled && { cursor: 'not-allowed' },
+        isWeb && {
+          transitionProperty: 'background-color, color',
+          transitionDuration: '160ms',
+          transitionTimingFunction: 'ease-out',
+        },
+      ]}
     >
-      <Text style={[SIZE_TYPOGRAPHY[size](), { color: labelColor }]}>{children}</Text>
+      {iconOnly ? (
+        <Ionicons name={iconName} size={dims.iconSize} color={labelColor} />
+      ) : (
+        <Text style={[currentTextStyle(dims.fontSize, 'medium'), { color: labelColor }]}>
+          {children}
+        </Text>
+      )}
     </Pressable>
   );
 }
@@ -86,5 +125,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'flex-start',
+    gap: 8,
   },
 });
