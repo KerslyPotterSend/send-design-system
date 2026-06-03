@@ -13,6 +13,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Logo from './src/components/Logo';
 import ButtonsScreen from './src/screens/ButtonsScreen';
 import ColorsScreen from './src/screens/ColorsScreen';
+import ComingSoonScreen from './src/screens/ComingSoonScreen';
 import SizesScreen from './src/screens/SizesScreen';
 import TypographyScreen from './src/screens/TypographyScreen';
 import { base, brand, content, layerTokens } from './src/theme/colors';
@@ -46,8 +47,29 @@ const SECTIONS = [
         id: 'buttons',
         label: 'Buttons',
         subtitle: 'Primary, sizes, states',
-        component: ButtonsScreen,
         ready: true,
+        children: [
+          {
+            id: 'buttons-primary',
+            label: 'Primary',
+            component: ButtonsScreen,
+            ready: true,
+          },
+          {
+            id: 'buttons-secondary',
+            label: 'Secondary',
+            component: ComingSoonScreen,
+            params: { title: 'Secondary Button' },
+            ready: true,
+          },
+          {
+            id: 'buttons-tertiary',
+            label: 'Tertiary',
+            component: ComingSoonScreen,
+            params: { title: 'Tertiary Button' },
+            ready: true,
+          },
+        ],
       },
     ],
   },
@@ -57,9 +79,25 @@ function flattenSections(sections) {
   const flat = [];
   for (const s of sections) {
     flat.push(s);
-    if (s.children) flat.push(...s.children);
+    if (s.children) flat.push(...flattenSections(s.children));
   }
   return flat;
+}
+
+function hasActiveDescendant(section, activeId) {
+  if (!section.children) return false;
+  return section.children.some(
+    (child) => child.id === activeId || hasActiveDescendant(child, activeId)
+  );
+}
+
+function firstLeafId(section) {
+  if (!section.children) return section.id;
+  for (const child of section.children) {
+    const leaf = firstLeafId(child);
+    if (leaf) return leaf;
+  }
+  return null;
 }
 
 export default function App() {
@@ -143,15 +181,15 @@ export default function App() {
 
           <View style={styles.nav}>
             {SECTIONS.map((s) => {
-              const childActive = s.children?.some((c) => c.id === activeId);
-              const isExpanded = s.children && (expandedIds.has(s.id) || childActive);
+              const descendantActive = hasActiveDescendant(s, activeId);
+              const isExpanded = s.children && (expandedIds.has(s.id) || descendantActive);
               return (
                 <View key={s.id}>
                   <NavItem
                     label={s.label}
                     subtitle={s.subtitle}
                     ready={s.ready}
-                    active={s.id === activeId || childActive}
+                    active={s.id === activeId || descendantActive}
                     isDark={isDark}
                     onPress={() => {
                       if (s.children) {
@@ -166,22 +204,54 @@ export default function App() {
                       }
                     }}
                     hasChildren={!!s.children}
-                    childActive={childActive}
+                    childActive={descendantActive}
                     expanded={isExpanded}
                   />
                   {s.children && isExpanded && (
                     <View style={styles.subNav}>
-                      {s.children.map((child) => (
-                        <SubNavItem
-                          key={child.id}
-                          label={child.label}
-                          ready={child.ready}
-                          active={child.id === activeId}
-                          isDark={isDark}
-                          accent={isDark ? brand.dark.brand5 : brand.light.brand6}
-                          onPress={() => setActiveId(child.id)}
-                        />
-                      ))}
+                      {s.children.map((child) => {
+                        const childDescendantActive = hasActiveDescendant(child, activeId);
+                        const childExpanded =
+                          child.children && (expandedIds.has(child.id) || childDescendantActive);
+                        return (
+                          <View key={child.id}>
+                            <SubNavItem
+                              label={child.label}
+                              ready={child.ready}
+                              active={child.id === activeId || childDescendantActive}
+                              isDark={isDark}
+                              hasChildren={!!child.children}
+                              expanded={childExpanded}
+                              onPress={() => {
+                                if (child.children) {
+                                  setExpandedIds((prev) => {
+                                    const next = new Set(prev);
+                                    if (next.has(child.id)) next.delete(child.id);
+                                    else next.add(child.id);
+                                    return next;
+                                  });
+                                } else if (child.component) {
+                                  setActiveId(child.id);
+                                }
+                              }}
+                            />
+                            {child.children && childExpanded && (
+                              <View style={styles.subNav}>
+                                {child.children.map((leaf) => (
+                                  <SubNavItem
+                                    key={leaf.id}
+                                    label={leaf.label}
+                                    ready={leaf.ready}
+                                    active={leaf.id === activeId}
+                                    isDark={isDark}
+                                    onPress={() => setActiveId(leaf.id)}
+                                  />
+                                ))}
+                              </View>
+                            )}
+                          </View>
+                        );
+                      })}
                     </View>
                   )}
                 </View>
@@ -243,7 +313,9 @@ function NavItem({ label, subtitle, ready, active, isDark, onPress, nested = fal
   const badgeColor = tokens.contentSecondary;
 
   const showActiveBg = active && !hasChildren;
-  const showActiveLabel = active || childActive;
+  // Only highlight the label when this row itself is the selected leaf —
+  // parent rows (Components, Buttons, …) stay secondary even when a descendant is active.
+  const showActiveLabel = active && !hasChildren;
   const bodyShift = hover && ready && !showActiveBg ? 4 : 0;
   const navBg = showActiveBg
     ? activeBg
@@ -333,14 +405,16 @@ function NavItem({ label, subtitle, ready, active, isDark, onPress, nested = fal
   );
 }
 
-function SubNavItem({ label, ready, active, isDark, accent, onPress }) {
+function SubNavItem({ label, ready, active, isDark, onPress, hasChildren = false, expanded = false }) {
   const [hover, setHover] = useState(false);
 
   const mode = isDark ? 'dark' : 'light';
   const tokens = content[mode];
   const idleColor = tokens.contentSecondary;
-  const hoverColor = tokens.contentPrimary;
-  const labelColor = active ? accent : hover ? hoverColor : idleColor;
+  const primaryColor = tokens.contentPrimary;
+  // Only the selected leaf brightens to content/primary. Parents stay secondary;
+  // hover always brightens regardless of position.
+  const labelColor = (active && !hasChildren) || hover ? primaryColor : idleColor;
 
   return (
     <Pressable
@@ -356,16 +430,6 @@ function SubNavItem({ label, ready, active, isDark, accent, onPress }) {
         },
       ]}
     >
-      <View
-        style={[
-          styles.subNavAccent,
-          {
-            backgroundColor: active ? accent : 'transparent',
-            transitionProperty: 'background-color',
-            transitionDuration: '180ms',
-          },
-        ]}
-      />
       <Text
         style={[
           styles.subNavItemLabel,
@@ -373,11 +437,27 @@ function SubNavItem({ label, ready, active, isDark, accent, onPress }) {
             color: labelColor,
             transitionProperty: 'color',
             transitionDuration: '180ms',
+            flex: 1,
           },
         ]}
       >
         {label}
       </Text>
+      {hasChildren && (
+        <Text
+          style={[
+            styles.navItemChevron,
+            {
+              color: labelColor,
+              transform: [{ rotate: expanded ? '90deg' : '0deg' }],
+              transitionProperty: 'transform, color',
+              transitionDuration: '180ms',
+            },
+          ]}
+        >
+          ›
+        </Text>
+      )}
     </Pressable>
   );
 }
@@ -516,18 +596,17 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   subNav: {
-    marginLeft: 18,
+    marginLeft: 8,
     marginTop: 2,
     marginBottom: 4,
-    paddingLeft: 14,
     gap: 2,
   },
   subNavItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 6,
+    paddingLeft: 10,
     paddingRight: 8,
-    position: 'relative',
   },
   subNavAccent: {
     position: 'absolute',

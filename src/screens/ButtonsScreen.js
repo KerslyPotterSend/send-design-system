@@ -1,11 +1,16 @@
 import { useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Button from '../components/Button';
-import { base, content, layerTokens } from '../theme/colors';
+import { base, brandTokens, content, layerTokens } from '../theme/colors';
 import { currentTextStyle } from '../theme/typography';
 
 const isWeb = Platform.OS === 'web';
 const MODES = ['light', 'dark'];
+const PILL_TRACK_W = 36;
+const PILL_TRACK_H = 20;
+const PILL_PAD = 2;
+const PILL_THUMB = PILL_TRACK_H - PILL_PAD * 2;
+const PILL_TRAVEL = PILL_TRACK_W - PILL_PAD * 2 - PILL_THUMB;
 
 const SIZES = ['L', 'M', 'S'];
 
@@ -16,8 +21,6 @@ const STATE_OPTIONS = [
   { value: 'disabled', label: 'Disabled' },
 ];
 
-const VARIANT_OPTIONS = [{ value: 'primary', label: 'Primary' }];
-
 export default function ButtonsScreen({
   mode: modeProp,
   onModeChange,
@@ -25,10 +28,10 @@ export default function ButtonsScreen({
   topInset = 0,
 }) {
   const [internalMode, setInternalMode] = useState('dark');
-  const [variant, setVariant] = useState('primary');
   const [state, setState] = useState('default');
   const [rounded, setRounded] = useState(false);
   const [iconOnly, setIconOnly] = useState(false);
+  const [hasIcon, setHasIcon] = useState(false);
 
   const isControlled = modeProp !== undefined;
   const mode = isControlled ? modeProp : internalMode;
@@ -45,8 +48,12 @@ export default function ButtonsScreen({
   const titleColor = tokens.contentPrimary;
   const subColor = tokens.contentSecondary;
   const chipIdleBg = layer.layer3Background;
-  const chipActiveBg = isDark ? base.dark.base6 : base.light.base11;
-  const chipActiveColor = isDark ? base.dark.base12 : base.light.base1;
+  const chipActiveBg = brandTokens[mode].brandBackground;
+  const chipActiveColor = brandTokens[mode].brandColor;
+  const switchOnBg = brandTokens[mode].brandBackground;
+  const switchOffBg = isDark ? base.dark.base6 : base.light.base4;
+  const switchThumbOn = brandTokens[mode].brandColor;
+  const switchThumbOff = isDark ? base.dark.base9 : base.light.base1;
 
   return (
     <View style={[styles.container, { backgroundColor: pageBg }]}>
@@ -70,7 +77,7 @@ export default function ButtonsScreen({
         )}
 
         <View style={[styles.section, { backgroundColor: cardBg }]}>
-          <Text style={[styles.sectionTitle, { color: titleColor }]}>Button</Text>
+          <Text style={[styles.sectionTitle, { color: titleColor }]}>Primary</Text>
           <Text style={[styles.sectionSubtitle, { color: subColor }]}>
             Drive every Figma variant from the controls below.
           </Text>
@@ -81,38 +88,19 @@ export default function ButtonsScreen({
                 <Text style={[styles.demoLabel, { color: subColor }]}>{s}</Text>
                 <Button
                   mode={mode}
-                  variant={variant}
                   size={s}
                   state={state}
                   rounded={rounded}
                   iconOnly={iconOnly}
+                  hasIcon={hasIcon}
                 >
                   Send money
                 </Button>
               </View>
             ))}
           </View>
-        </View>
-
-        <View style={[styles.section, { backgroundColor: cardBg }]}>
-          <Text style={[styles.sectionTitle, { color: titleColor }]}>Current variant</Text>
-          <Text style={[styles.sectionSubtitle, { color: subColor }]}>
-            Mirrors the Figma component property panel.
-          </Text>
 
           <View style={styles.controls}>
-            <Segmented
-              label="Variant"
-              options={VARIANT_OPTIONS}
-              value={variant}
-              onChange={setVariant}
-              labelColor={subColor}
-              chipIdleBg={chipIdleBg}
-              chipIdleColor={titleColor}
-              chipActiveBg={chipActiveBg}
-              chipActiveColor={chipActiveColor}
-              dividerColor={dividerColor}
-            />
             <Segmented
               label="State"
               options={STATE_OPTIONS}
@@ -132,6 +120,22 @@ export default function ButtonsScreen({
               labelColor={subColor}
               valueColor={titleColor}
               dividerColor={dividerColor}
+              trackOn={switchOnBg}
+              trackOff={switchOffBg}
+              thumbOn={switchThumbOn}
+              thumbOff={switchThumbOff}
+            />
+            <SwitchRow
+              label="Has Icon"
+              value={hasIcon}
+              onChange={setHasIcon}
+              labelColor={subColor}
+              valueColor={titleColor}
+              dividerColor={dividerColor}
+              trackOn={switchOnBg}
+              trackOff={switchOffBg}
+              thumbOn={switchThumbOn}
+              thumbOff={switchThumbOff}
             />
             <SwitchRow
               label="Icon Only"
@@ -140,11 +144,14 @@ export default function ButtonsScreen({
               labelColor={subColor}
               valueColor={titleColor}
               dividerColor={dividerColor}
+              trackOn={switchOnBg}
+              trackOff={switchOffBg}
+              thumbOn={switchThumbOn}
+              thumbOff={switchThumbOff}
               isLast
             />
           </View>
         </View>
-
       </ScrollView>
     </View>
   );
@@ -185,7 +192,19 @@ function Segmented({ label, options, value, onChange, labelColor, chipIdleBg, ch
   );
 }
 
-function SwitchRow({ label, value, onChange, labelColor, valueColor, dividerColor, isLast }) {
+function SwitchRow({
+  label,
+  value,
+  onChange,
+  labelColor,
+  valueColor,
+  dividerColor,
+  trackOn,
+  trackOff,
+  thumbOn,
+  thumbOff,
+  isLast,
+}) {
   return (
     <View
       style={[
@@ -196,9 +215,53 @@ function SwitchRow({ label, value, onChange, labelColor, valueColor, dividerColo
       <Text style={[styles.controlLabel, { color: labelColor }]}>{label}</Text>
       <View style={styles.switchRight}>
         <Text style={[styles.switchValue, { color: valueColor }]}>{value ? 'true' : 'false'}</Text>
-        <Switch value={value} onValueChange={onChange} />
+        <PillSwitch
+          value={value}
+          onChange={onChange}
+          trackOn={trackOn}
+          trackOff={trackOff}
+          thumbOn={thumbOn}
+          thumbOff={thumbOff}
+        />
       </View>
     </View>
+  );
+}
+
+function PillSwitch({ value, onChange, trackOn, trackOff, thumbOn, thumbOff }) {
+  return (
+    <Pressable
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value }}
+      onPress={() => onChange(!value)}
+      style={[
+        styles.pillTrack,
+        {
+          backgroundColor: value ? trackOn : trackOff,
+        },
+        isWeb && {
+          cursor: 'pointer',
+          transitionProperty: 'background-color',
+          transitionDuration: '160ms',
+          transitionTimingFunction: 'ease-out',
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.pillThumb,
+          {
+            backgroundColor: value ? thumbOn : thumbOff,
+            transform: [{ translateX: value ? PILL_TRAVEL : 0 }],
+          },
+          isWeb && {
+            transitionProperty: 'transform, background-color',
+            transitionDuration: '180ms',
+            transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)',
+          },
+        ]}
+      />
+    </Pressable>
   );
 }
 
@@ -319,5 +382,17 @@ const styles = StyleSheet.create({
   },
   switchValue: {
     ...currentTextStyle('3', 'regular'),
+  },
+  pillTrack: {
+    width: PILL_TRACK_W,
+    height: PILL_TRACK_H,
+    borderRadius: PILL_TRACK_H / 2,
+    padding: PILL_PAD,
+    justifyContent: 'center',
+  },
+  pillThumb: {
+    width: PILL_THUMB,
+    height: PILL_THUMB,
+    borderRadius: PILL_THUMB / 2,
   },
 });

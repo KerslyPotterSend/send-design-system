@@ -18,7 +18,7 @@ const SIZE_DIMS = {
     squareSize: 44,
   },
   M: {
-    paddingHorizontal: spacing.mobile.S,    // 8
+    paddingHorizontal: spacing.mobile.M,    // 12
     paddingVertical: spacing.mobile.XS,     // 4
     height: 32,                             // fixed height
     fontSize: '2',                          // 12/16 medium
@@ -29,6 +29,7 @@ const SIZE_DIMS = {
   S: {
     paddingHorizontal: spacing.mobile.S,    // 8
     paddingVertical: 0,
+    height: 24,                             // fixed height
     fontSize: '2',                          // 12/16 medium
     cornerRadius: cornerRadius.mobile.XS,   // 4
     iconSize: 14,
@@ -43,6 +44,7 @@ export default function Button({
   mode = 'light',
   rounded = false,
   iconOnly = false,
+  hasIcon = false,
   icon = null,
   state = 'default',  // 'default' | 'hover' | 'pressed' | 'disabled'
   onPress,
@@ -111,9 +113,12 @@ export default function Button({
       {iconOnly ? (
         <Ionicons name={iconName} size={dims.iconSize} color={labelColor} />
       ) : (
-        <Text style={[currentTextStyle(dims.fontSize, 'medium'), { color: labelColor }]}>
-          {children}
-        </Text>
+        <>
+          {hasIcon && <Ionicons name={iconName} size={dims.iconSize} color={labelColor} />}
+          <Text style={[currentTextStyle(dims.fontSize, 'medium'), { color: labelColor }]}>
+            {children}
+          </Text>
+        </>
       )}
     </Pressable>
   );
