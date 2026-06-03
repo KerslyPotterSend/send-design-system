@@ -113,7 +113,7 @@ function isLightHex(hex) {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6;
 }
 
-export default function ColorsScreen({ mode: modeProp, onModeChange, onScroll, topInset = 0 }) {
+export default function ColorsScreen({ mode: modeProp, onModeChange, onScroll, topInset = 0, pageTitle }) {
   const [internalMode, setInternalMode] = useState('dark');
   const [tab, setTab] = useState('primitives');
   const isControlled = modeProp !== undefined;
@@ -140,6 +140,9 @@ export default function ColorsScreen({ mode: modeProp, onModeChange, onScroll, t
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
+        {pageTitle && (
+          <Text style={[styles.pageTitle, { color: titleColor }]}>{pageTitle}</Text>
+        )}
         {!isControlled && (
           <View style={[styles.toggleBar, { backgroundColor: cardBg, borderColor: cardBorder }]}>
             {MODES.map((m) => (
@@ -367,6 +370,11 @@ const styles = StyleSheet.create({
     maxWidth: isWeb ? 1200 : undefined,
     width: '100%',
     alignSelf: isWeb ? 'center' : 'stretch',
+  },
+  pageTitle: {
+    ...currentTextStyle('11', 'medium'),
+    marginTop: 24,
+    marginBottom: 32,
   },
   toggleBar: {
     flexDirection: 'row',

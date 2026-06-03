@@ -26,6 +26,7 @@ export default function TypographyScreen({
   onModeChange,
   onScroll,
   topInset = 0,
+  pageTitle,
 }) {
   const [internalMode, setInternalMode] = useState('dark');
   const isControlled = modeProp !== undefined;
@@ -57,6 +58,9 @@ export default function TypographyScreen({
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
+        {pageTitle && (
+          <Text style={[styles.pageTitle, { color: primary }]}>{pageTitle}</Text>
+        )}
         {!isControlled && (
           <View style={[styles.toggleBar, { backgroundColor: cardBg, borderColor: cardBorder }]}>
             {MODES.map((m) => (
@@ -404,6 +408,11 @@ const styles = StyleSheet.create({
     maxWidth: isWeb ? 1200 : undefined,
     width: '100%',
     alignSelf: isWeb ? 'center' : 'stretch',
+  },
+  pageTitle: {
+    ...currentTextStyle('11', 'medium'),
+    marginTop: 24,
+    marginBottom: 32,
   },
   toggleBar: {
     flexDirection: 'row',

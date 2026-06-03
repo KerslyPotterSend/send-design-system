@@ -16,89 +16,32 @@ import ColorsScreen from './src/screens/ColorsScreen';
 import ComingSoonScreen from './src/screens/ComingSoonScreen';
 import SizesScreen from './src/screens/SizesScreen';
 import TypographyScreen from './src/screens/TypographyScreen';
-import { base, brand, content, layerTokens } from './src/theme/colors';
+import { base, brand, brandTokens, content, layerTokens } from './src/theme/colors';
 import { currentTextStyle } from './src/theme/typography';
 const HEADER_HEIGHT = 72;
 const SIDEBAR_WIDTH = 260;
+const isWeb = Platform.OS === 'web';
 
-const SECTIONS = [
-  { id: 'colors', label: 'Colors', subtitle: 'Tokens', component: ColorsScreen, ready: true },
+const SIDEBAR_GROUPS = [
   {
-    id: 'typography',
-    label: 'Typography',
-    subtitle: 'Type scale',
-    component: TypographyScreen,
-    ready: true,
-  },
-  {
-    id: 'sizes',
-    label: 'Sizes',
-    subtitle: 'Radius, spacing, border',
-    component: SizesScreen,
-    ready: true,
+    id: 'branding',
+    label: 'Branding',
+    items: [
+      { id: 'colors', label: 'Colors', component: ColorsScreen },
+      { id: 'typography', label: 'Typography', component: TypographyScreen },
+      { id: 'sizes', label: 'Sizes', component: SizesScreen },
+    ],
   },
   {
     id: 'components',
     label: 'Components',
-    subtitle: 'Buttons, inputs, cards',
-    ready: true,
-    children: [
-      {
-        id: 'buttons',
-        label: 'Buttons',
-        subtitle: 'Primary, sizes, states',
-        ready: true,
-        children: [
-          {
-            id: 'buttons-primary',
-            label: 'Primary',
-            component: ButtonsScreen,
-            ready: true,
-          },
-          {
-            id: 'buttons-secondary',
-            label: 'Secondary',
-            component: ComingSoonScreen,
-            params: { title: 'Secondary Button' },
-            ready: true,
-          },
-          {
-            id: 'buttons-tertiary',
-            label: 'Tertiary',
-            component: ComingSoonScreen,
-            params: { title: 'Tertiary Button' },
-            ready: true,
-          },
-        ],
-      },
+    items: [
+      { id: 'buttons', label: 'Buttons', component: ButtonsScreen },
     ],
   },
 ];
 
-function flattenSections(sections) {
-  const flat = [];
-  for (const s of sections) {
-    flat.push(s);
-    if (s.children) flat.push(...flattenSections(s.children));
-  }
-  return flat;
-}
-
-function hasActiveDescendant(section, activeId) {
-  if (!section.children) return false;
-  return section.children.some(
-    (child) => child.id === activeId || hasActiveDescendant(child, activeId)
-  );
-}
-
-function firstLeafId(section) {
-  if (!section.children) return section.id;
-  for (const child of section.children) {
-    const leaf = firstLeafId(child);
-    if (leaf) return leaf;
-  }
-  return null;
-}
+const ALL_SIDEBAR_ITEMS = SIDEBAR_GROUPS.flatMap((g) => g.items);
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -110,10 +53,8 @@ export default function App() {
   const [activeId, setActiveId] = useState('colors');
   const [mode, setMode] = useState('dark');
   const [scrollY, setScrollY] = useState(0);
-  const [expandedIds, setExpandedIds] = useState(() => new Set());
 
-  const allSections = flattenSections(SECTIONS);
-  const active = allSections.find((s) => s.id === activeId && s.component) ?? allSections.find((s) => s.component);
+  const active = ALL_SIDEBAR_ITEMS.find((s) => s.id === activeId) ?? ALL_SIDEBAR_ITEMS[0];
   const ActiveComponent = active.component;
   const isDark = mode === 'dark';
   const isScrolled = scrollY > 4;
@@ -180,87 +121,24 @@ export default function App() {
           </View>
 
           <View style={styles.nav}>
-            {SECTIONS.map((s) => {
-              const descendantActive = hasActiveDescendant(s, activeId);
-              const isExpanded = s.children && (expandedIds.has(s.id) || descendantActive);
-              return (
-                <View key={s.id}>
-                  <NavItem
-                    label={s.label}
-                    subtitle={s.subtitle}
-                    ready={s.ready}
-                    active={s.id === activeId || descendantActive}
+            {SIDEBAR_GROUPS.map((group, gIdx) => (
+              <View key={group.id} style={[styles.navGroup, gIdx > 0 && { marginTop: 24 }]}>
+                <Text style={[styles.navGroupLabel, { color: contentTokens.contentTertiary }]}>{group.label}</Text>
+                {group.items.map((item) => (
+                  <SidebarItem
+                    key={item.id}
+                    label={item.label}
+                    active={activeId === item.id}
                     isDark={isDark}
-                    onPress={() => {
-                      if (s.children) {
-                        setExpandedIds((prev) => {
-                          const next = new Set(prev);
-                          if (next.has(s.id)) next.delete(s.id);
-                          else next.add(s.id);
-                          return next;
-                        });
-                      } else if (s.component) {
-                        setActiveId(s.id);
-                      }
-                    }}
-                    hasChildren={!!s.children}
-                    childActive={descendantActive}
-                    expanded={isExpanded}
+                    onPress={() => setActiveId(item.id)}
                   />
-                  {s.children && isExpanded && (
-                    <View style={styles.subNav}>
-                      {s.children.map((child) => {
-                        const childDescendantActive = hasActiveDescendant(child, activeId);
-                        const childExpanded =
-                          child.children && (expandedIds.has(child.id) || childDescendantActive);
-                        return (
-                          <View key={child.id}>
-                            <SubNavItem
-                              label={child.label}
-                              ready={child.ready}
-                              active={child.id === activeId || childDescendantActive}
-                              isDark={isDark}
-                              hasChildren={!!child.children}
-                              expanded={childExpanded}
-                              onPress={() => {
-                                if (child.children) {
-                                  setExpandedIds((prev) => {
-                                    const next = new Set(prev);
-                                    if (next.has(child.id)) next.delete(child.id);
-                                    else next.add(child.id);
-                                    return next;
-                                  });
-                                } else if (child.component) {
-                                  setActiveId(child.id);
-                                }
-                              }}
-                            />
-                            {child.children && childExpanded && (
-                              <View style={styles.subNav}>
-                                {child.children.map((leaf) => (
-                                  <SubNavItem
-                                    key={leaf.id}
-                                    label={leaf.label}
-                                    ready={leaf.ready}
-                                    active={leaf.id === activeId}
-                                    isDark={isDark}
-                                    onPress={() => setActiveId(leaf.id)}
-                                  />
-                                ))}
-                              </View>
-                            )}
-                          </View>
-                        );
-                      })}
-                    </View>
-                  )}
-                </View>
-              );
-            })}
+                ))}
+              </View>
+            ))}
           </View>
 
           <View style={styles.sidebarFooter}>
-            <Text style={[styles.footerText, { color: sidebarFooterColor }]}>v0.1.0 · early</Text>
+            <DarkModeRow isDark={isDark} onChange={(next) => setMode(next ? 'dark' : 'light')} />
           </View>
         </View>
 
@@ -269,195 +147,118 @@ export default function App() {
             mode={mode}
             onModeChange={setMode}
             onScroll={(e) => setScrollY(e?.nativeEvent?.contentOffset?.y ?? 0)}
-            topInset={HEADER_HEIGHT}
+            topInset={16}
+            pageTitle={active.label}
             route={{ params: active.params }}
           />
-
-          <View
-            style={[
-              styles.contentHeader,
-              {
-                backgroundColor: headerBg,
-                borderBottomColor: headerBorder,
-              },
-              headerWebStyles,
-            ]}
-          >
-            <View style={styles.contentHeaderInner}>
-              <Text style={[styles.contentTitle, { color: titleColor }]}>{active.label}</Text>
-              <ModeToggle mode={mode} onChange={setMode} isDark={isDark} />
-            </View>
-          </View>
         </View>
       </View>
     </SafeAreaProvider>
   );
 }
 
-function NavItem({ label, subtitle, ready, active, isDark, onPress, nested = false, hasChildren = false, childActive = false, expanded = false }) {
-  const [hover, setHover] = useState(false);
-  const [pressed, setPressed] = useState(false);
-
+function DarkModeRow({ isDark, onChange }) {
   const mode = isDark ? 'dark' : 'light';
-  const layer = layerTokens[mode];
   const tokens = content[mode];
-  const labelColor = tokens.contentSecondary;
-  const hoverLabelColor = tokens.contentPrimary;
-  const activeLabelColor = tokens.contentPrimary;
-  const subtitleColor = tokens.contentTertiary;
-  const idleHoverBg = layer.layer2BackgroundHover;
-  const idlePressBg = layer.layer2BackgroundPress;
-  const activeBg = layer.layer2BackgroundFocus;
-  const activeSubtitleColor = tokens.contentSecondary;
-  const badgeBg = isDark ? 'rgba(255,255,255,0.06)' : '#F2F2F2';
-  const badgeColor = tokens.contentSecondary;
-
-  const showActiveBg = active && !hasChildren;
-  // Only highlight the label when this row itself is the selected leaf —
-  // parent rows (Components, Buttons, …) stay secondary even when a descendant is active.
-  const showActiveLabel = active && !hasChildren;
-  const bodyShift = hover && ready && !showActiveBg ? 4 : 0;
-  const navBg = showActiveBg
-    ? activeBg
-    : pressed && ready
-    ? idlePressBg
-    : hover && ready
-    ? idleHoverBg
-    : 'transparent';
-
+  const btokens = brandTokens[mode];
+  const layer = layerTokens[mode];
   return (
     <Pressable
-      onPress={onPress}
-      onHoverIn={() => setHover(true)}
-      onHoverOut={() => {
-        setHover(false);
-        setPressed(false);
-      }}
-      onPressIn={() => setPressed(true)}
-      onPressOut={() => setPressed(false)}
-      disabled={!ready}
+      onPress={() => onChange(!isDark)}
+      style={[styles.darkModeRow, isWeb && { cursor: 'pointer' }]}
+    >
+      <Text style={[currentTextStyle('3', 'regular'), { color: tokens.contentSecondary }]}>Dark Mode</Text>
+      <PillSwitch
+        value={isDark}
+        onChange={onChange}
+        trackOn={btokens.brandBackground}
+        trackOff={isDark ? base.dark.base6 : base.light.base4}
+        thumbOn={btokens.brandColor}
+        thumbOff={isDark ? base.dark.base9 : base.light.base1}
+      />
+    </Pressable>
+  );
+}
+
+const PILL_TRACK_W = 36;
+const PILL_TRACK_H = 20;
+const PILL_PAD = 2;
+const PILL_THUMB = PILL_TRACK_H - PILL_PAD * 2;
+const PILL_TRAVEL = PILL_TRACK_W - PILL_PAD * 2 - PILL_THUMB;
+
+function PillSwitch({ value, onChange, trackOn, trackOff, thumbOn, thumbOff }) {
+  return (
+    <Pressable
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value }}
+      onPress={() => onChange(!value)}
       style={[
-        styles.navItem,
-        nested && { paddingLeft: 22 },
-        {
-          backgroundColor: navBg,
-          opacity: ready ? 1 : 0.55,
-          cursor: ready ? 'pointer' : 'default',
+        styles.pillTrack,
+        { backgroundColor: value ? trackOn : trackOff },
+        isWeb && {
+          cursor: 'pointer',
           transitionProperty: 'background-color',
-          transitionDuration: '200ms',
-          transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          transitionDuration: '160ms',
+          transitionTimingFunction: 'ease-out',
         },
       ]}
     >
       <View
         style={[
-          styles.navItemBody,
+          styles.pillThumb,
           {
-            transform: [{ translateX: bodyShift }],
-            transitionProperty: 'transform',
-            transitionDuration: '260ms',
-            transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            backgroundColor: value ? thumbOn : thumbOff,
+            transform: [{ translateX: value ? PILL_TRAVEL : 0 }],
+          },
+          isWeb && {
+            transitionProperty: 'transform, background-color',
+            transitionDuration: '180ms',
+            transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)',
           },
         ]}
-      >
-        <Text
-          style={[
-            styles.navItemLabel,
-            {
-              color: showActiveLabel
-                ? activeLabelColor
-                : hover && ready
-                ? hoverLabelColor
-                : labelColor,
-              transitionProperty: 'color',
-              transitionDuration: '180ms',
-            },
-          ]}
-        >
-          {label}
-        </Text>
-      </View>
-
-      {hasChildren && (
-        <Text
-          style={[
-            styles.navItemChevron,
-            {
-              color: showActiveLabel
-                ? activeLabelColor
-                : hover && ready
-                ? hoverLabelColor
-                : subtitleColor,
-              transform: [{ rotate: expanded ? '90deg' : '0deg' }],
-              transitionProperty: 'transform, color',
-              transitionDuration: '180ms',
-            },
-          ]}
-        >
-          ›
-        </Text>
-      )}
-
-      {!ready && !hasChildren && (
-        <Text style={[styles.navItemBadge, { backgroundColor: badgeBg, color: badgeColor }]}>Soon</Text>
-      )}
+      />
     </Pressable>
   );
 }
 
-function SubNavItem({ label, ready, active, isDark, onPress, hasChildren = false, expanded = false }) {
+function SidebarItem({ label, active, isDark, onPress }) {
   const [hover, setHover] = useState(false);
-
   const mode = isDark ? 'dark' : 'light';
   const tokens = content[mode];
+
   const idleColor = tokens.contentSecondary;
   const primaryColor = tokens.contentPrimary;
-  // Only the selected leaf brightens to content/primary. Parents stay secondary;
-  // hover always brightens regardless of position.
-  const labelColor = (active && !hasChildren) || hover ? primaryColor : idleColor;
+  const brandColor = tokens.contentBrand;
+  const labelColor = active ? brandColor : hover ? primaryColor : idleColor;
 
   return (
     <Pressable
       onPress={onPress}
       onHoverIn={() => setHover(true)}
       onHoverOut={() => setHover(false)}
-      disabled={!ready}
       style={[
-        styles.subNavItem,
-        {
-          opacity: ready ? 1 : 0.55,
-          cursor: ready ? 'pointer' : 'default',
+        styles.sidebarItem,
+        isWeb && {
+          cursor: 'pointer',
+          transitionProperty: 'color',
+          transitionDuration: '160ms',
+          transitionTimingFunction: 'ease-out',
         },
       ]}
     >
       <Text
         style={[
-          styles.subNavItemLabel,
-          {
-            color: labelColor,
+          currentTextStyle('3', active || hover ? 'medium' : 'regular'),
+          { color: labelColor },
+          isWeb && {
             transitionProperty: 'color',
             transitionDuration: '180ms',
-            flex: 1,
+            transitionTimingFunction: 'ease-out',
           },
         ]}
       >
         {label}
       </Text>
-      {hasChildren && (
-        <Text
-          style={[
-            styles.navItemChevron,
-            {
-              color: labelColor,
-              transform: [{ rotate: expanded ? '90deg' : '0deg' }],
-              transitionProperty: 'transform, color',
-              transitionDuration: '180ms',
-            },
-          ]}
-        >
-          ›
-        </Text>
-      )}
     </Pressable>
   );
 }
@@ -541,88 +342,61 @@ const styles = StyleSheet.create({
     width: SIDEBAR_WIDTH,
     paddingVertical: 24,
     paddingHorizontal: 16,
+    marginVertical: 16,
+    marginLeft: 16,
+    marginRight: 8,
+    borderRadius: 16, // Corner Radius / L
+  },
+  sidebarFooterRow: {
+    alignItems: 'flex-start',
   },
   sidebarHeader: {
     paddingHorizontal: 8,
     paddingBottom: 24,
     marginBottom: 8,
-    borderBottomWidth: 1,
   },
   brandSub: {
     ...currentTextStyle('2', 'regular'),
   },
-  navSectionLabel: {
-    ...currentTextStyle('1', 'semiBold'),
+  nav: {
+    marginTop: 32,
+  },
+  navGroup: {
+    // first group: no top margin; subsequent groups add their own
+  },
+  navGroupLabel: {
+    ...currentTextStyle('1', 'regular'),
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    paddingHorizontal: 8,
-    marginTop: 12,
+    letterSpacing: 1.4,
+    paddingLeft: 12,
     marginBottom: 8,
   },
-  nav: {
-    gap: 4,
-  },
-  navItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 10,
-    paddingRight: 10,
-    paddingVertical: 10,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  navItemBody: {
-    flex: 1,
-  },
-  navItemLabel: {
-    ...currentTextStyle('3', 'regular'),
-  },
-  navItemSubtitle: {
-    ...currentTextStyle('1', 'regular'),
-    marginTop: 2,
-  },
-  navItemBadge: {
-    ...currentTextStyle('1', 'bold'),
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  navItemChevron: {
-    fontSize: 18,
-    marginLeft: 8,
-    marginRight: 4,
-    lineHeight: 18,
-  },
-  subNav: {
-    marginLeft: 8,
-    marginTop: 2,
-    marginBottom: 4,
-    gap: 2,
-  },
-  subNavItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-    paddingLeft: 10,
-    paddingRight: 8,
-  },
-  subNavAccent: {
-    position: 'absolute',
-    left: -15,
-    top: 8,
-    bottom: 8,
-    width: 2,
-    borderRadius: 1,
-  },
-  subNavItemLabel: {
-    ...currentTextStyle('3', 'regular'),
+  sidebarItem: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
   },
   sidebarFooter: {
     marginTop: 'auto',
     paddingTop: 24,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
+  },
+  darkModeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  pillTrack: {
+    width: PILL_TRACK_W,
+    height: PILL_TRACK_H,
+    borderRadius: PILL_TRACK_H / 2,
+    padding: PILL_PAD,
+    justifyContent: 'center',
+  },
+  pillThumb: {
+    width: PILL_THUMB,
+    height: PILL_THUMB,
+    borderRadius: PILL_THUMB / 2,
   },
   footerText: {
     ...currentTextStyle('1', 'regular'),

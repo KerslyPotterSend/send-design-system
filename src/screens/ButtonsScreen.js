@@ -26,6 +26,7 @@ export default function ButtonsScreen({
   onModeChange,
   onScroll,
   topInset = 0,
+  pageTitle,
 }) {
   const [internalMode, setInternalMode] = useState('dark');
   const [state, setState] = useState('default');
@@ -62,6 +63,9 @@ export default function ButtonsScreen({
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
+        {pageTitle && (
+          <Text style={[styles.pageTitle, { color: titleColor }]}>{pageTitle}</Text>
+        )}
         {!isControlled && (
           <View style={[styles.toggleBar, { backgroundColor: cardBg, borderColor: cardBorder }]}>
             {MODES.map((m) => (
@@ -298,6 +302,11 @@ const styles = StyleSheet.create({
     maxWidth: isWeb ? 1200 : undefined,
     width: '100%',
     alignSelf: isWeb ? 'center' : 'stretch',
+  },
+  pageTitle: {
+    ...currentTextStyle('11', 'medium'),
+    marginTop: 24,
+    marginBottom: 32,
   },
   toggleBar: {
     flexDirection: 'row',
