@@ -192,6 +192,7 @@ export default function ColorsScreen({ mode: modeProp, onModeChange, onScroll, t
               palette={palette}
               mode={mode}
               isDark={isDark}
+              isNarrow={isNarrow}
               cardBg={cardBg}
               cardBorder={cardBorder}
               titleColor={titleColor}
@@ -213,6 +214,7 @@ export default function ColorsScreen({ mode: modeProp, onModeChange, onScroll, t
                 palette={palette}
                 mode={mode}
                 isDark={isDark}
+                isNarrow={isNarrow}
                 cardBg={cardBg}
                 cardBorder={cardBorder}
                 titleColor={titleColor}
@@ -293,16 +295,20 @@ function GroupHeader({ title, subtitle, titleColor, subColor }) {
   );
 }
 
-function PaletteCard({ palette, mode, cardBg, cardBorder, titleColor, subColor, renderSwatch }) {
+function PaletteCard({ palette, mode, isNarrow, cardBg, cardBorder, titleColor, subColor, renderSwatch }) {
   const tokens = palette.data[mode];
+  const useGrid = isWeb || isNarrow;
   return (
     <View style={[styles.section, { backgroundColor: cardBg }]}>
       <Text style={[styles.sectionTitle, { color: titleColor }]}>{palette.title}</Text>
       <Text style={[styles.sectionSubtitle, { color: subColor }]}>{palette.description}</Text>
 
-      <View style={isWeb ? styles.swatchGrid : styles.swatchList}>
+      <View style={useGrid ? styles.swatchGrid : styles.swatchList}>
         {Object.entries(tokens).map(([key, hex]) => (
-          <View key={key} style={isWeb ? styles.swatchGridItem : null}>
+          <View
+            key={key}
+            style={useGrid ? [styles.swatchGridItem, isNarrow && styles.swatchGridItemNarrow] : null}
+          >
             {renderSwatch(key, hex)}
           </View>
         ))}
@@ -462,6 +468,9 @@ const styles = StyleSheet.create({
   swatchGridItem: {
     width: '33.333%',
     paddingHorizontal: 8,
+  },
+  swatchGridItemNarrow: {
+    width: '100%',
   },
   radixList: {
     gap: 12,

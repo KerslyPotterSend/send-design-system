@@ -22,7 +22,6 @@ import { currentTextStyle } from './src/theme/typography';
 const HEADER_HEIGHT = 72;
 const SIDEBAR_WIDTH = 260;
 const MOBILE_BREAKPOINT = 768;
-const TOPBAR_HEIGHT = 64;
 const isWeb = Platform.OS === 'web';
 
 const SIDEBAR_GROUPS = [
@@ -142,19 +141,36 @@ export default function App() {
   );
 
   if (isMobile) {
+    const showLogo = !isScrolled && !navOpen;
     return (
       <SafeAreaProvider>
         <View style={[styles.shell, styles.shellMobile, { backgroundColor: pageBg }]}>
-          <View style={[styles.topBar, { backgroundColor: sidebarBg, borderBottomColor: sidebarBorder }]}>
+          <View style={[styles.contentArea, { backgroundColor: pageBg }]}>
+            <ActiveComponent
+              mode={mode}
+              onModeChange={setMode}
+              onScroll={(e) => setScrollY(e?.nativeEvent?.contentOffset?.y ?? 0)}
+              topInset={44}
+              pageTitle={active.label}
+              route={{ params: active.params }}
+            />
+          </View>
+
+          {/* Floating logo — fades away once the page is scrolled. */}
+          <View
+            pointerEvents="none"
+            style={[
+              styles.mobileLogo,
+              {
+                opacity: showLogo ? 1 : 0,
+                transform: [{ translateY: showLogo ? 0 : -8 }],
+                transitionProperty: 'opacity, transform',
+                transitionDuration: '200ms',
+                transitionTimingFunction: 'ease-out',
+              },
+            ]}
+          >
             <Logo color={isDark ? brand.dark.brand5 : base.light.base12} />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={navOpen ? 'Close menu' : 'Open menu'}
-              onPress={() => setNavOpen((o) => !o)}
-              style={[styles.menuButton, isWeb && { cursor: 'pointer' }]}
-            >
-              <Ionicons name={navOpen ? 'close' : 'menu'} size={26} color={titleColor} />
-            </Pressable>
           </View>
 
           {navOpen && (
@@ -164,16 +180,19 @@ export default function App() {
             </View>
           )}
 
-          <View style={[styles.contentArea, { backgroundColor: pageBg }]}>
-            <ActiveComponent
-              mode={mode}
-              onModeChange={setMode}
-              onScroll={(e) => setScrollY(e?.nativeEvent?.contentOffset?.y ?? 0)}
-              topInset={0}
-              pageTitle={active.label}
-              route={{ params: active.params }}
-            />
-          </View>
+          {/* Floating hamburger — always visible. */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={navOpen ? 'Close menu' : 'Open menu'}
+            onPress={() => setNavOpen((o) => !o)}
+            style={[
+              styles.mobileMenuFab,
+              { backgroundColor: sidebarBg, borderColor: sidebarBorder },
+              isWeb && { cursor: 'pointer' },
+            ]}
+          >
+            <Ionicons name={navOpen ? 'close' : 'menu'} size={24} color={titleColor} />
+          </Pressable>
         </View>
       </SafeAreaProvider>
     );
@@ -403,32 +422,45 @@ const styles = StyleSheet.create({
   shellMobile: {
     flexDirection: 'column',
   },
-  topBar: {
-    height: TOPBAR_HEIGHT,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    zIndex: 60,
+  mobileLogo: {
+    position: isWeb ? 'fixed' : 'absolute',
+    top: 20,
+    left: 20,
+    zIndex: 95,
   },
-  menuButton: {
-    padding: 8,
-    margin: -8,
+  mobileMenuFab: {
+    position: isWeb ? 'fixed' : 'absolute',
+    top: 14,
+    right: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 110,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    ...(isWeb && { boxShadow: '0 4px 16px rgba(0,0,0,0.25)' }),
   },
   mobileDrawer: {
-    position: 'absolute',
-    top: TOPBAR_HEIGHT,
+    position: isWeb ? 'fixed' : 'absolute',
+    top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 72,
     paddingBottom: 24,
-    zIndex: 50,
+    zIndex: 100,
   },
   mobileDrawerFooter: {
-    marginTop: 'auto',
+    position: isWeb ? 'fixed' : 'absolute',
+    left: 20,
+    right: 20,
+    bottom: 24,
     paddingHorizontal: 10,
   },
   sidebar: {
