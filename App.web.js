@@ -82,6 +82,37 @@ export default function App() {
     document.documentElement.style.backgroundColor = bg;
   }, [mode]);
 
+  // Lock the document so only the in-app ScrollView scrolls. Without this, focusing
+  // a TextInput on mobile lets the browser scroll the window to reveal the field and
+  // it gets stuck offset (can't scroll back up after the keyboard closes).
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const html = document.documentElement;
+    const body = document.body;
+    const prev = {
+      htmlHeight: html.style.height,
+      htmlOverflow: html.style.overflow,
+      bodyHeight: body.style.height,
+      bodyOverflow: body.style.overflow,
+      bodyMargin: body.style.margin,
+      bodyOverscroll: body.style.overscrollBehavior,
+    };
+    html.style.height = '100%';
+    html.style.overflow = 'hidden';
+    body.style.height = '100%';
+    body.style.overflow = 'hidden';
+    body.style.margin = '0';
+    body.style.overscrollBehavior = 'none';
+    return () => {
+      html.style.height = prev.htmlHeight;
+      html.style.overflow = prev.htmlOverflow;
+      body.style.height = prev.bodyHeight;
+      body.style.overflow = prev.bodyOverflow;
+      body.style.margin = prev.bodyMargin;
+      body.style.overscrollBehavior = prev.bodyOverscroll;
+    };
+  }, []);
+
   if (!fontsLoaded) return null;
 
   const baseTokens = base[mode];
@@ -439,11 +470,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 110,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.18,
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 },
-    ...(isWeb && { boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }),
+    ...(isWeb && { boxShadow: '0 2px 8px rgba(15, 23, 42, 0.2)' }),
   },
   mobileDrawer: {
     position: isWeb ? 'fixed' : 'absolute',
