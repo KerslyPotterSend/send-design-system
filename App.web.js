@@ -14,6 +14,7 @@ import Logo from './src/components/Logo';
 import ButtonsScreen from './src/screens/ButtonsScreen';
 import ColorsScreen from './src/screens/ColorsScreen';
 import ComingSoonScreen from './src/screens/ComingSoonScreen';
+import InputScreen from './src/screens/InputScreen';
 import SizesScreen from './src/screens/SizesScreen';
 import TypographyScreen from './src/screens/TypographyScreen';
 import { base, brand, brandTokens, content, layerTokens } from './src/theme/colors';
@@ -37,6 +38,7 @@ const SIDEBAR_GROUPS = [
     label: 'Components',
     items: [
       { id: 'buttons', label: 'Buttons', component: ButtonsScreen },
+      { id: 'input', label: 'Input', component: InputScreen },
     ],
   },
 ];

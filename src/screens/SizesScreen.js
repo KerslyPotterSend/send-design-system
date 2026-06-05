@@ -4,6 +4,8 @@ import { base, content, layerTokens } from '../theme/colors';
 import {
   border,
   borderRefs,
+  buttonSize,
+  buttonSizeRefs,
   cornerRadius,
   cornerRadiusRefs,
   spacing,
@@ -38,6 +40,14 @@ const SECTIONS = [
     data: border,
     refs: borderRefs,
     kind: 'border',
+  },
+  {
+    id: 'buttonSize',
+    title: 'Button Size',
+    description: 'Height tokens for buttons.',
+    data: buttonSize,
+    refs: buttonSizeRefs,
+    kind: 'buttonHeight',
   },
 ];
 
@@ -157,6 +167,19 @@ function Preview({ kind, value, surface, fill, border: borderC }) {
           height: 12,
           backgroundColor: fill,
           borderRadius: 2,
+        }}
+      />
+    );
+  }
+  if (kind === 'buttonHeight') {
+    return (
+      <View
+        style={{
+          height: value,
+          minWidth: 56,
+          paddingHorizontal: 16,
+          borderRadius: value / 2,
+          backgroundColor: fill,
         }}
       />
     );

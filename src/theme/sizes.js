@@ -16,6 +16,7 @@ export const unit = {
   24: 24,
   32: 32,
   40: 40,
+  44: 44,
   48: 48,
   56: 56,
   64: 64,
@@ -49,6 +50,12 @@ export const border = {
   desktop: { 0: unit[0], 1: unit[1] },
 };
 
+// Button heights.
+export const buttonSize = {
+  mobile:  { L: unit[44], M: unit[32], S: unit[24] },
+  desktop: { L: unit[44], M: unit[32], S: unit[24] },
+};
+
 // Refs back to the Unit primitive name, used for display (`Unit/4`, `Unit/999`).
 export const cornerRadiusRefs = {
   mobile:  { 0: '0', XS: '4', S: '8', L: '16', Pill: '999' },
@@ -63,4 +70,9 @@ export const spacingRefs = {
 export const borderRefs = {
   mobile:  { 0: '0', 1: '1' },
   desktop: { 0: '0', 1: '1' },
+};
+
+export const buttonSizeRefs = {
+  mobile:  { L: '44', M: '32', S: '24' },
+  desktop: { L: '44', M: '32', S: '24' },
 };

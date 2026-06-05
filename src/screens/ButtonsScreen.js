@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Button from '../components/Button';
@@ -80,80 +81,140 @@ export default function ButtonsScreen({
           </View>
         )}
 
-        <View style={[styles.section, { backgroundColor: cardBg }]}>
-          <Text style={[styles.sectionTitle, { color: titleColor }]}>Primary</Text>
-          <Text style={[styles.sectionSubtitle, { color: subColor }]}>
-            Drive every Figma variant from the controls below.
-          </Text>
+        <View style={styles.layout}>
+          <View style={styles.demoColumn}>
+            <View style={[styles.section, { backgroundColor: cardBg }]}>
+              <Text style={[styles.sectionTitle, { color: titleColor }]}>Primary</Text>
 
-          <View style={styles.demoStage}>
-            {SIZES.map((s) => (
-              <View key={s} style={styles.demoSlot}>
-                <Text style={[styles.demoLabel, { color: subColor }]}>{s}</Text>
-                <Button
-                  mode={mode}
-                  size={s}
-                  state={state}
-                  rounded={rounded}
-                  iconOnly={iconOnly}
-                  hasIcon={hasIcon}
-                >
-                  Send money
-                </Button>
+              <View style={styles.demoStage}>
+                {SIZES.map((s) => (
+                  <View key={s} style={styles.demoSlot}>
+                    <Text style={[styles.demoLabel, { color: subColor }]}>{s}</Text>
+                    <Button
+                      mode={mode}
+                      size={s}
+                      state={state}
+                      rounded={rounded}
+                      iconOnly={iconOnly}
+                      hasIcon={hasIcon}
+                    >
+                      Send money
+                    </Button>
+                  </View>
+                ))}
               </View>
-            ))}
+            </View>
+
+            <View style={[styles.section, { backgroundColor: cardBg }]}>
+              <Text style={[styles.sectionTitle, { color: titleColor }]}>Secondary</Text>
+
+              <View style={styles.demoStage}>
+                {SIZES.map((s) => (
+                  <View key={s} style={styles.demoSlot}>
+                    <Text style={[styles.demoLabel, { color: subColor }]}>{s}</Text>
+                    <Button
+                      variant="secondary"
+                      mode={mode}
+                      size={s}
+                      state={state}
+                      rounded={rounded}
+                      iconOnly={iconOnly}
+                      hasIcon={hasIcon}
+                    >
+                      Send money
+                    </Button>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            <View style={[styles.section, { backgroundColor: cardBg }]}>
+              <Text style={[styles.sectionTitle, { color: titleColor }]}>Tertiary</Text>
+
+              <View style={styles.demoStage}>
+                {SIZES.map((s) => (
+                  <View key={s} style={styles.demoSlot}>
+                    <Text style={[styles.demoLabel, { color: subColor }]}>{s}</Text>
+                    <Button
+                      variant="tertiary"
+                      mode={mode}
+                      size={s}
+                      state={state}
+                      rounded={rounded}
+                      iconOnly={iconOnly}
+                      hasIcon={hasIcon}
+                    >
+                      Send money
+                    </Button>
+                  </View>
+                ))}
+              </View>
+            </View>
           </View>
 
-          <View style={styles.controls}>
-            <Segmented
-              label="State"
-              options={STATE_OPTIONS}
-              value={state}
-              onChange={setState}
-              labelColor={subColor}
-              chipIdleBg={chipIdleBg}
-              chipIdleColor={titleColor}
-              chipActiveBg={chipActiveBg}
-              chipActiveColor={chipActiveColor}
-              dividerColor={dividerColor}
-            />
-            <SwitchRow
-              label="Rounded"
-              value={rounded}
-              onChange={setRounded}
-              labelColor={subColor}
-              valueColor={titleColor}
-              dividerColor={dividerColor}
-              trackOn={switchOnBg}
-              trackOff={switchOffBg}
-              thumbOn={switchThumbOn}
-              thumbOff={switchThumbOff}
-            />
-            <SwitchRow
-              label="Has Icon"
-              value={hasIcon}
-              onChange={setHasIcon}
-              labelColor={subColor}
-              valueColor={titleColor}
-              dividerColor={dividerColor}
-              trackOn={switchOnBg}
-              trackOff={switchOffBg}
-              thumbOn={switchThumbOn}
-              thumbOff={switchThumbOff}
-            />
-            <SwitchRow
-              label="Icon Only"
-              value={iconOnly}
-              onChange={setIconOnly}
-              labelColor={subColor}
-              valueColor={titleColor}
-              dividerColor={dividerColor}
-              trackOn={switchOnBg}
-              trackOff={switchOffBg}
-              thumbOn={switchThumbOn}
-              thumbOff={switchThumbOff}
-              isLast
-            />
+          <View style={[styles.controlColumn, isWeb && styles.controlColumnSticky]}>
+            <View style={[styles.controlPanel, { backgroundColor: cardBg }]}>
+              <View style={[styles.panelHeader, { borderBottomColor: dividerColor }]}>
+                <Ionicons name="options-outline" size={16} color={titleColor} />
+                <Text style={[styles.panelTitle, { color: titleColor }]}>Controls</Text>
+                <Text style={[styles.panelBadge, { color: subColor, borderColor: dividerColor }]}>
+                  All variants
+                </Text>
+              </View>
+
+              <View style={styles.controls}>
+                <Dropdown
+                  label="State"
+                  options={STATE_OPTIONS}
+                  value={state}
+                  onChange={setState}
+                  labelColor={subColor}
+                  valueColor={titleColor}
+                  triggerBg={chipIdleBg}
+                  menuBg={cardBg}
+                  activeBg={chipActiveBg}
+                  activeColor={chipActiveColor}
+                  dividerColor={dividerColor}
+                />
+                <SwitchRow
+                  label="Rounded"
+                  value={rounded}
+                  onChange={setRounded}
+                  labelColor={subColor}
+                  valueColor={titleColor}
+                  dividerColor={dividerColor}
+                  trackOn={switchOnBg}
+                  trackOff={switchOffBg}
+                  thumbOn={switchThumbOn}
+                  thumbOff={switchThumbOff}
+                />
+                <SwitchRow
+                  label="Has Icon"
+                  value={hasIcon}
+                  onChange={setHasIcon}
+                  labelColor={subColor}
+                  valueColor={titleColor}
+                  dividerColor={dividerColor}
+                  trackOn={switchOnBg}
+                  trackOff={switchOffBg}
+                  thumbOn={switchThumbOn}
+                  thumbOff={switchThumbOff}
+                />
+                <SwitchRow
+                  label="Icon Only"
+                  value={iconOnly}
+                  onChange={setIconOnly}
+                  labelColor={subColor}
+                  valueColor={titleColor}
+                  dividerColor={dividerColor}
+                  trackOn={switchOnBg}
+                  trackOff={switchOffBg}
+                  thumbOn={switchThumbOn}
+                  thumbOff={switchThumbOff}
+                  isLast
+                />
+              </View>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -161,36 +222,57 @@ export default function ButtonsScreen({
   );
 }
 
-function Segmented({ label, options, value, onChange, labelColor, chipIdleBg, chipIdleColor, chipActiveBg, chipActiveColor, dividerColor }) {
+function Dropdown({ label, options, value, onChange, labelColor, valueColor, triggerBg, menuBg, activeBg, activeColor, dividerColor }) {
+  const [open, setOpen] = useState(false);
+  const current = options.find((o) => o.value === value);
+
   return (
-    <View style={[styles.controlRow, { borderBottomColor: dividerColor }]}>
+    <View
+      style={[
+        styles.controlRow,
+        { borderBottomColor: dividerColor, zIndex: open ? 20 : 1 },
+        isWeb && { position: 'relative' },
+      ]}
+    >
       <Text style={[styles.controlLabel, { color: labelColor }]}>{label}</Text>
-      <View style={styles.chipGroup}>
-        {options.map((opt) => {
-          const active = opt.value === value;
-          return (
-            <Pressable
-              key={opt.value}
-              onPress={() => onChange(opt.value)}
-              style={[
-                styles.chip,
-                {
-                  backgroundColor: active ? chipActiveBg : chipIdleBg,
-                },
-                isWeb && { cursor: 'pointer' },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.chipLabel,
-                  { color: active ? chipActiveColor : chipIdleColor },
-                ]}
-              >
-                {opt.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+      <View style={styles.dropdownWrap}>
+        <Pressable
+          onPress={() => setOpen((o) => !o)}
+          style={[
+            styles.dropdownTrigger,
+            { backgroundColor: triggerBg, borderColor: dividerColor },
+            isWeb && { cursor: 'pointer' },
+          ]}
+        >
+          <Text style={[styles.dropdownValue, { color: valueColor }]}>{current?.label}</Text>
+          <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={14} color={valueColor} />
+        </Pressable>
+
+        {open && (
+          <View style={[styles.dropdownMenu, { backgroundColor: menuBg, borderColor: dividerColor }]}>
+            {options.map((opt) => {
+              const active = opt.value === value;
+              return (
+                <Pressable
+                  key={opt.value}
+                  onPress={() => {
+                    onChange(opt.value);
+                    setOpen(false);
+                  }}
+                  style={[
+                    styles.dropdownItem,
+                    active && { backgroundColor: activeBg },
+                    isWeb && { cursor: 'pointer' },
+                  ]}
+                >
+                  <Text style={[styles.dropdownItemText, { color: active ? activeColor : valueColor }]}>
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
       </View>
     </View>
   );
@@ -327,6 +409,48 @@ const styles = StyleSheet.create({
     ...currentTextStyle('3', 'semiBold'),
     textTransform: 'capitalize',
   },
+  layout: {
+    flexDirection: isWeb ? 'row' : 'column-reverse',
+    alignItems: 'flex-start',
+    gap: 16,
+  },
+  demoColumn: {
+    flex: 1,
+    gap: 16,
+    width: '100%',
+  },
+  controlColumn: {
+    width: isWeb ? 320 : '100%',
+  },
+  controlColumnSticky: {
+    position: 'sticky',
+    top: 24,
+  },
+  controlPanel: {
+    borderRadius: 12,
+    padding: isWeb ? 20 : 16,
+  },
+  panelHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingBottom: 14,
+    marginBottom: 6,
+    borderBottomWidth: 0.5,
+  },
+  panelTitle: {
+    ...currentTextStyle('4', 'medium'),
+    flex: 1,
+  },
+  panelBadge: {
+    ...currentTextStyle('1', 'medium'),
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    borderWidth: 0.5,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
   section: {
     borderRadius: 12,
     padding: isWeb ? 24 : 16,
@@ -368,20 +492,44 @@ const styles = StyleSheet.create({
   },
   controlLabel: {
     ...currentTextStyle('3', 'regular'),
-    minWidth: 120,
+    minWidth: 84,
   },
-  chipGroup: {
+  dropdownWrap: {
+    position: 'relative',
+    minWidth: 150,
+  },
+  dropdownTrigger: {
     flexDirection: 'row',
-    gap: 6,
-    flexWrap: 'wrap',
-    justifyContent: 'flex-end',
-  },
-  chip: {
-    paddingVertical: 6,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 999,
+    borderRadius: 8,
+    borderWidth: 1,
   },
-  chipLabel: {
+  dropdownValue: {
+    ...currentTextStyle('2', 'medium'),
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 42,
+    left: 0,
+    right: 0,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingVertical: 4,
+    zIndex: 20,
+    ...(isWeb && { boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }),
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+  },
+  dropdownItemText: {
     ...currentTextStyle('2', 'medium'),
   },
   switchRight: {
