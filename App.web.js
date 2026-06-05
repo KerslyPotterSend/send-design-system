@@ -55,7 +55,7 @@ export default function App() {
   });
   const [activeId, setActiveId] = useState('colors');
   const [mode, setMode] = useState('dark');
-  const [scrollY, setScrollY] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
 
   const { width } = useWindowDimensions();
@@ -64,10 +64,10 @@ export default function App() {
   const active = ALL_SIDEBAR_ITEMS.find((s) => s.id === activeId) ?? ALL_SIDEBAR_ITEMS[0];
   const ActiveComponent = active.component;
   const isDark = mode === 'dark';
-  const isScrolled = scrollY > 4;
+  const isScrolled = scrolled;
 
   useEffect(() => {
-    setScrollY(0);
+    setScrolled(false);
   }, [activeId]);
 
   // Close the mobile drawer when we grow back to desktop.
@@ -149,7 +149,7 @@ export default function App() {
             <ActiveComponent
               mode={mode}
               onModeChange={setMode}
-              onScroll={(e) => setScrollY(e?.nativeEvent?.contentOffset?.y ?? 0)}
+              onScroll={(e) => setScrolled((e?.nativeEvent?.contentOffset?.y ?? 0) > 4)}
               topInset={44}
               pageTitle={active.label}
               route={{ params: active.params }}
@@ -227,7 +227,7 @@ export default function App() {
           <ActiveComponent
             mode={mode}
             onModeChange={setMode}
-            onScroll={(e) => setScrollY(e?.nativeEvent?.contentOffset?.y ?? 0)}
+            onScroll={(e) => setScrolled((e?.nativeEvent?.contentOffset?.y ?? 0) > 4)}
             topInset={16}
             pageTitle={active.label}
             route={{ params: active.params }}
@@ -440,10 +440,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 110,
     shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    ...(isWeb && { boxShadow: '0 4px 16px rgba(0,0,0,0.25)' }),
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    ...(isWeb && { boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }),
   },
   mobileDrawer: {
     position: isWeb ? 'fixed' : 'absolute',
