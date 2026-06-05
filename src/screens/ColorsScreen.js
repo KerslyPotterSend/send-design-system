@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import ColorSwatch from '../components/ColorSwatch';
 import { base, brand, brandTokens, content, layerTokens, radix } from '../theme/colors';
 import { currentTextStyle } from '../theme/typography';
@@ -133,15 +133,24 @@ export default function ColorsScreen({ mode: modeProp, onModeChange, onScroll, t
 
   const radixScales = radix[mode];
 
+  const { width } = useWindowDimensions();
+  const isNarrow = width > 0 && width < 768;
+
   return (
     <View style={[styles.container, { backgroundColor: pageBg }]}>
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingTop: (isWeb ? 24 : 20) + topInset }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: (isWeb ? 24 : 20) + topInset },
+          isNarrow && styles.contentNarrow,
+        ]}
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
         {pageTitle && (
-          <Text style={[styles.pageTitle, { color: titleColor }]}>{pageTitle}</Text>
+          <Text style={[styles.pageTitle, isNarrow && styles.pageTitleNarrow, { color: titleColor }]}>
+            {pageTitle}
+          </Text>
         )}
         {!isControlled && (
           <View style={[styles.toggleBar, { backgroundColor: cardBg, borderColor: cardBorder }]}>
@@ -370,6 +379,14 @@ const styles = StyleSheet.create({
     maxWidth: isWeb ? 1200 : undefined,
     width: '100%',
     alignSelf: isWeb ? 'center' : 'stretch',
+  },
+  contentNarrow: {
+    paddingHorizontal: 20,
+  },
+  pageTitleNarrow: {
+    ...currentTextStyle('8', 'medium'),
+    marginTop: 8,
+    marginBottom: 20,
   },
   pageTitle: {
     ...currentTextStyle('11', 'medium'),

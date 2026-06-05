@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Button from '../components/Button';
 import { base, brandTokens, content, layerTokens } from '../theme/colors';
 import { currentTextStyle } from '../theme/typography';
@@ -34,6 +34,10 @@ export default function ButtonsScreen({
   const [rounded, setRounded] = useState(false);
   const [iconOnly, setIconOnly] = useState(false);
   const [hasIcon, setHasIcon] = useState(false);
+  const [controlsOpen, setControlsOpen] = useState(false);
+
+  const { width } = useWindowDimensions();
+  const isNarrow = width > 0 && width < 768;
 
   const isControlled = modeProp !== undefined;
   const mode = isControlled ? modeProp : internalMode;
@@ -57,15 +61,97 @@ export default function ButtonsScreen({
   const switchThumbOn = brandTokens[mode].brandColor;
   const switchThumbOff = isDark ? base.dark.base9 : base.light.base1;
 
+  const controlPanel = (
+    <View style={[styles.controlPanel, { backgroundColor: cardBg }]}>
+      <View style={[styles.panelHeader, { borderBottomColor: dividerColor }]}>
+        <Ionicons name="options-outline" size={16} color={titleColor} />
+        <Text style={[styles.panelTitle, { color: titleColor }]}>Controls</Text>
+        {isNarrow ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Close controls"
+            onPress={() => setControlsOpen(false)}
+            style={isWeb && { cursor: 'pointer' }}
+          >
+            <Ionicons name="close" size={20} color={subColor} />
+          </Pressable>
+        ) : (
+          <Text style={[styles.panelBadge, { color: subColor, borderColor: dividerColor }]}>
+            All variants
+          </Text>
+        )}
+      </View>
+
+      <View style={styles.controls}>
+        <Dropdown
+          label="State"
+          options={STATE_OPTIONS}
+          value={state}
+          onChange={setState}
+          labelColor={subColor}
+          valueColor={titleColor}
+          triggerBg={chipIdleBg}
+          menuBg={cardBg}
+          activeBg={chipActiveBg}
+          activeColor={chipActiveColor}
+          dividerColor={dividerColor}
+        />
+        <SwitchRow
+          label="Rounded"
+          value={rounded}
+          onChange={setRounded}
+          labelColor={subColor}
+          valueColor={titleColor}
+          dividerColor={dividerColor}
+          trackOn={switchOnBg}
+          trackOff={switchOffBg}
+          thumbOn={switchThumbOn}
+          thumbOff={switchThumbOff}
+        />
+        <SwitchRow
+          label="Has Icon"
+          value={hasIcon}
+          onChange={setHasIcon}
+          labelColor={subColor}
+          valueColor={titleColor}
+          dividerColor={dividerColor}
+          trackOn={switchOnBg}
+          trackOff={switchOffBg}
+          thumbOn={switchThumbOn}
+          thumbOff={switchThumbOff}
+        />
+        <SwitchRow
+          label="Icon Only"
+          value={iconOnly}
+          onChange={setIconOnly}
+          labelColor={subColor}
+          valueColor={titleColor}
+          dividerColor={dividerColor}
+          trackOn={switchOnBg}
+          trackOff={switchOffBg}
+          thumbOn={switchThumbOn}
+          thumbOff={switchThumbOff}
+          isLast
+        />
+      </View>
+    </View>
+  );
+
   return (
     <View style={[styles.container, { backgroundColor: pageBg }]}>
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingTop: (isWeb ? 24 : 20) + topInset }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: (isWeb ? 24 : 20) + topInset },
+          isNarrow && styles.contentNarrow,
+        ]}
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
         {pageTitle && (
-          <Text style={[styles.pageTitle, { color: titleColor }]}>{pageTitle}</Text>
+          <Text style={[styles.pageTitle, isNarrow && styles.pageTitleNarrow, { color: titleColor }]}>
+            {pageTitle}
+          </Text>
         )}
         {!isControlled && (
           <View style={[styles.toggleBar, { backgroundColor: cardBg, borderColor: cardBorder }]}>
@@ -81,7 +167,7 @@ export default function ButtonsScreen({
           </View>
         )}
 
-        <View style={styles.layout}>
+        <View style={[styles.layout, isNarrow && styles.layoutNarrow]}>
           <View style={styles.demoColumn}>
             <View style={[styles.section, { backgroundColor: cardBg }]}>
               <Text style={[styles.sectionTitle, { color: titleColor }]}>Primary</Text>
@@ -152,72 +238,36 @@ export default function ButtonsScreen({
             </View>
           </View>
 
-          <View style={[styles.controlColumn, isWeb && styles.controlColumnSticky]}>
-            <View style={[styles.controlPanel, { backgroundColor: cardBg }]}>
-              <View style={[styles.panelHeader, { borderBottomColor: dividerColor }]}>
-                <Ionicons name="options-outline" size={16} color={titleColor} />
-                <Text style={[styles.panelTitle, { color: titleColor }]}>Controls</Text>
-                <Text style={[styles.panelBadge, { color: subColor, borderColor: dividerColor }]}>
-                  All variants
-                </Text>
-              </View>
-
-              <View style={styles.controls}>
-                <Dropdown
-                  label="State"
-                  options={STATE_OPTIONS}
-                  value={state}
-                  onChange={setState}
-                  labelColor={subColor}
-                  valueColor={titleColor}
-                  triggerBg={chipIdleBg}
-                  menuBg={cardBg}
-                  activeBg={chipActiveBg}
-                  activeColor={chipActiveColor}
-                  dividerColor={dividerColor}
-                />
-                <SwitchRow
-                  label="Rounded"
-                  value={rounded}
-                  onChange={setRounded}
-                  labelColor={subColor}
-                  valueColor={titleColor}
-                  dividerColor={dividerColor}
-                  trackOn={switchOnBg}
-                  trackOff={switchOffBg}
-                  thumbOn={switchThumbOn}
-                  thumbOff={switchThumbOff}
-                />
-                <SwitchRow
-                  label="Has Icon"
-                  value={hasIcon}
-                  onChange={setHasIcon}
-                  labelColor={subColor}
-                  valueColor={titleColor}
-                  dividerColor={dividerColor}
-                  trackOn={switchOnBg}
-                  trackOff={switchOffBg}
-                  thumbOn={switchThumbOn}
-                  thumbOff={switchThumbOff}
-                />
-                <SwitchRow
-                  label="Icon Only"
-                  value={iconOnly}
-                  onChange={setIconOnly}
-                  labelColor={subColor}
-                  valueColor={titleColor}
-                  dividerColor={dividerColor}
-                  trackOn={switchOnBg}
-                  trackOff={switchOffBg}
-                  thumbOn={switchThumbOn}
-                  thumbOff={switchThumbOff}
-                  isLast
-                />
-              </View>
+          {!isNarrow && (
+            <View style={[styles.controlColumn, isWeb && styles.controlColumnSticky]}>
+              {controlPanel}
             </View>
-          </View>
+          )}
         </View>
       </ScrollView>
+
+      {isNarrow && (
+        <>
+          {controlsOpen && (
+            <>
+              <Pressable style={styles.scrim} onPress={() => setControlsOpen(false)} />
+              <View style={styles.sheet}>{controlPanel}</View>
+            </>
+          )}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Controls"
+            onPress={() => setControlsOpen((o) => !o)}
+            style={[
+              styles.fab,
+              { backgroundColor: chipActiveBg },
+              isWeb && { cursor: 'pointer' },
+            ]}
+          >
+            <Ionicons name={controlsOpen ? 'close' : 'options-outline'} size={24} color={chipActiveColor} />
+          </Pressable>
+        </>
+      )}
     </View>
   );
 }
@@ -385,6 +435,15 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: isWeb ? 'center' : 'stretch',
   },
+  contentNarrow: {
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+  },
+  pageTitleNarrow: {
+    ...currentTextStyle('8', 'medium'),
+    marginTop: 8,
+    marginBottom: 20,
+  },
   pageTitle: {
     ...currentTextStyle('11', 'medium'),
     marginTop: 24,
@@ -413,6 +472,47 @@ const styles = StyleSheet.create({
     flexDirection: isWeb ? 'row' : 'column-reverse',
     alignItems: 'flex-start',
     gap: 16,
+  },
+  layoutNarrow: {
+    flexDirection: 'column',
+  },
+  controlColumnNarrow: {
+    width: '100%',
+  },
+  fab: {
+    position: isWeb ? 'fixed' : 'absolute',
+    right: 20,
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 90,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    ...(isWeb && { boxShadow: '0 6px 20px rgba(0,0,0,0.3)' }),
+  },
+  scrim: {
+    position: isWeb ? 'fixed' : 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    zIndex: 80,
+  },
+  sheet: {
+    position: isWeb ? 'fixed' : 'absolute',
+    left: 16,
+    right: 16,
+    bottom: 92,
+    maxHeight: '70%',
+    zIndex: 100,
+    borderRadius: 16,
+    ...(isWeb && { boxShadow: '0 12px 40px rgba(0,0,0,0.35)' }),
   },
   demoColumn: {
     flex: 1,

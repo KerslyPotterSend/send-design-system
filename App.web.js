@@ -7,7 +7,7 @@ import {
 } from '@expo-google-fonts/dm-sans';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import Logo from './src/components/Logo';
@@ -21,6 +21,8 @@ import { base, brand, brandTokens, content, layerTokens } from './src/theme/colo
 import { currentTextStyle } from './src/theme/typography';
 const HEADER_HEIGHT = 72;
 const SIDEBAR_WIDTH = 260;
+const MOBILE_BREAKPOINT = 768;
+const TOPBAR_HEIGHT = 64;
 const isWeb = Platform.OS === 'web';
 
 const SIDEBAR_GROUPS = [
@@ -55,6 +57,10 @@ export default function App() {
   const [activeId, setActiveId] = useState('colors');
   const [mode, setMode] = useState('dark');
   const [scrollY, setScrollY] = useState(0);
+  const [navOpen, setNavOpen] = useState(false);
+
+  const { width } = useWindowDimensions();
+  const isMobile = width > 0 && width < MOBILE_BREAKPOINT;
 
   const active = ALL_SIDEBAR_ITEMS.find((s) => s.id === activeId) ?? ALL_SIDEBAR_ITEMS[0];
   const ActiveComponent = active.component;
@@ -64,6 +70,11 @@ export default function App() {
   useEffect(() => {
     setScrollY(0);
   }, [activeId]);
+
+  // Close the mobile drawer when we grow back to desktop.
+  useEffect(() => {
+    if (!isMobile) setNavOpen(false);
+  }, [isMobile]);
 
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof document === 'undefined') return;
@@ -102,6 +113,72 @@ export default function App() {
   const sidebarMutedColor = contentTokens.contentSecondary;
   const sidebarFooterColor = contentTokens.contentTertiary;
 
+  const handleSelect = (id) => {
+    setActiveId(id);
+    setNavOpen(false);
+  };
+
+  const navGroups = (
+    <View style={styles.nav}>
+      {SIDEBAR_GROUPS.map((group, gIdx) => (
+        <View key={group.id} style={[styles.navGroup, gIdx > 0 && { marginTop: 24 }]}>
+          <Text style={[styles.navGroupLabel, { color: contentTokens.contentTertiary }]}>{group.label}</Text>
+          {group.items.map((item) => (
+            <SidebarItem
+              key={item.id}
+              label={item.label}
+              active={activeId === item.id}
+              isDark={isDark}
+              onPress={() => handleSelect(item.id)}
+            />
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+
+  const darkModeRow = (
+    <DarkModeRow isDark={isDark} onChange={(next) => setMode(next ? 'dark' : 'light')} />
+  );
+
+  if (isMobile) {
+    return (
+      <SafeAreaProvider>
+        <View style={[styles.shell, styles.shellMobile, { backgroundColor: pageBg }]}>
+          <View style={[styles.topBar, { backgroundColor: sidebarBg, borderBottomColor: sidebarBorder }]}>
+            <Logo color={isDark ? brand.dark.brand5 : base.light.base12} />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={navOpen ? 'Close menu' : 'Open menu'}
+              onPress={() => setNavOpen((o) => !o)}
+              style={[styles.menuButton, isWeb && { cursor: 'pointer' }]}
+            >
+              <Ionicons name={navOpen ? 'close' : 'menu'} size={26} color={titleColor} />
+            </Pressable>
+          </View>
+
+          {navOpen && (
+            <View style={[styles.mobileDrawer, { backgroundColor: sidebarBg }]}>
+              {navGroups}
+              <View style={styles.mobileDrawerFooter}>{darkModeRow}</View>
+            </View>
+          )}
+
+          <View style={[styles.contentArea, { backgroundColor: pageBg }]}>
+            <ActiveComponent
+              mode={mode}
+              onModeChange={setMode}
+              onScroll={(e) => setScrollY(e?.nativeEvent?.contentOffset?.y ?? 0)}
+              topInset={0}
+              pageTitle={active.label}
+              route={{ params: active.params }}
+            />
+          </View>
+        </View>
+      </SafeAreaProvider>
+    );
+  }
+
   return (
     <SafeAreaProvider>
       <View style={[styles.shell, { backgroundColor: pageBg }]}>
@@ -122,26 +199,9 @@ export default function App() {
             <Text style={[styles.brandSub, { color: sidebarMutedColor, marginTop: 8, marginLeft: 12 }]}>Design System</Text>
           </View>
 
-          <View style={styles.nav}>
-            {SIDEBAR_GROUPS.map((group, gIdx) => (
-              <View key={group.id} style={[styles.navGroup, gIdx > 0 && { marginTop: 24 }]}>
-                <Text style={[styles.navGroupLabel, { color: contentTokens.contentTertiary }]}>{group.label}</Text>
-                {group.items.map((item) => (
-                  <SidebarItem
-                    key={item.id}
-                    label={item.label}
-                    active={activeId === item.id}
-                    isDark={isDark}
-                    onPress={() => setActiveId(item.id)}
-                  />
-                ))}
-              </View>
-            ))}
-          </View>
+          {navGroups}
 
-          <View style={styles.sidebarFooter}>
-            <DarkModeRow isDark={isDark} onChange={(next) => setMode(next ? 'dark' : 'light')} />
-          </View>
+          <View style={styles.sidebarFooter}>{darkModeRow}</View>
         </View>
 
         <View style={[styles.contentArea, { backgroundColor: pageBg }]}>
@@ -339,6 +399,37 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     minHeight: '100vh',
+  },
+  shellMobile: {
+    flexDirection: 'column',
+  },
+  topBar: {
+    height: TOPBAR_HEIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    zIndex: 60,
+  },
+  menuButton: {
+    padding: 8,
+    margin: -8,
+  },
+  mobileDrawer: {
+    position: 'absolute',
+    top: TOPBAR_HEIGHT,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
+    zIndex: 50,
+  },
+  mobileDrawerFooter: {
+    marginTop: 'auto',
+    paddingHorizontal: 10,
   },
   sidebar: {
     width: SIDEBAR_WIDTH,

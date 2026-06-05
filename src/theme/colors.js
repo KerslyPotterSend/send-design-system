@@ -47,6 +47,16 @@ const palette = {
     800: '#333333',
     900: '#1A1A1A',
   },
+  // Radix "red" scale (theme-split) — error / destructive feedback.
+  red: {
+    light: { 8: '#EB8E90', 9: '#E5484D' },
+    dark: { 8: '#B54548', 9: '#E5484D' },
+  },
+  // Radix "amber" scale (theme-split) — warning feedback.
+  amber: {
+    light: { 8: '#E2A336', 9: '#FFC53D' },
+    dark: { 8: '#8F6424', 9: '#FFC53D' },
+  },
 };
 
 // =============================================================================
@@ -129,6 +139,12 @@ export const content = {
     contentBrandHover: palette.brand[400],
     contentBrandPress: palette.brand[600],
   },
+};
+
+// Error / warning feedback — Radix red/amber step 8.
+export const feedback = {
+  light: { error: palette.red.light[8], warning: palette.amber.light[8] },
+  dark: { error: palette.red.dark[8], warning: palette.amber.dark[8] },
 };
 
 export const layerTokens = {
