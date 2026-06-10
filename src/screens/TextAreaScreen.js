@@ -1,7 +1,7 @@
 import Icon from '../components/Icon';
 import { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import Input from '../components/Input';
+import TextArea from '../components/TextArea';
 import DevModeToggle from '../components/DevModeToggle';
 import { base, brandTokens, content, layerTokens } from '../theme/colors';
 import { currentTextStyle } from '../theme/typography';
@@ -15,8 +15,8 @@ const PILL_THUMB = PILL_TRACK_H - PILL_PAD * 2;
 const PILL_TRAVEL = PILL_TRACK_W - PILL_PAD * 2 - PILL_THUMB;
 
 const LAYERS = [
-  { layer: 2, title: 'Layer 2', description: 'Input on the Layer 2 surface.' },
-  { layer: 3, title: 'Layer 3', description: 'Input on the Layer 3 surface.' },
+  { layer: 2, title: 'Layer 2', description: 'Text area on the Layer 2 surface.' },
+  { layer: 3, title: 'Layer 3', description: 'Text area on the Layer 3 surface.' },
 ];
 
 const STATE_OPTIONS = [
@@ -27,10 +27,9 @@ const STATE_OPTIONS = [
   { value: 'disabled', label: 'Disabled' },
 ];
 
-export default function InputScreen({ mode: modeProp, onModeChange, onScroll, topInset = 0, pageTitle }) {
+export default function TextAreaScreen({ mode: modeProp, onModeChange, onScroll, topInset = 0, pageTitle }) {
   const [internalMode, setInternalMode] = useState('dark');
   const [state, setState] = useState('default');
-  const [rounded, setRounded] = useState(false);
   const [devMode, setDevMode] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
 
@@ -94,19 +93,6 @@ export default function InputScreen({ mode: modeProp, onModeChange, onScroll, to
           activeColor={chipActiveColor}
           dividerColor={dividerColor}
         />
-        <SwitchRow
-          label="Rounded"
-          value={rounded}
-          onChange={setRounded}
-          labelColor={subColor}
-          valueColor={titleColor}
-          dividerColor={dividerColor}
-          trackOn={switchOnBg}
-          trackOff={switchOffBg}
-          thumbOn={switchThumbOn}
-          thumbOff={switchThumbOff}
-          isLast
-        />
       </View>
     </View>
   );
@@ -162,7 +148,7 @@ export default function InputScreen({ mode: modeProp, onModeChange, onScroll, to
                 <Text style={[styles.sectionSubtitle, { color: subColor }]}>{item.description}</Text>
 
                 <View style={styles.demoStage}>
-                  <Input layer={item.layer} mode={mode} state={state} rounded={rounded} devMode={devMode} />
+                  <TextArea layer={item.layer} mode={mode} state={state} devMode={devMode} />
                 </View>
               </View>
             ))}

@@ -7,8 +7,8 @@ import { cornerRadius, spacing } from '../theme/sizes';
 import { currentTextStyle } from '../theme/typography';
 
 const isWeb = Platform.OS === 'web';
-const ICON_SIZE = 20;
-const HELPER_ICON_SIZE = 16; // smaller info icon to sit with the 12px helper text
+const HELPER_ICON_SIZE = 16; // info icon sized to sit with the 12px helper text
+const FIELD_HEIGHT = 96;
 
 // Each layer renders the field on a different surface token (Layer 1 / 2 / 3).
 const LAYER_TOKENS = {
@@ -17,11 +17,10 @@ const LAYER_TOKENS = {
   3: { bg: 'layer3Background', border: 'layer3BorderColor', bgFocus: 'layer3BackgroundFocus', borderFocus: 'layer3BorderColorFocus', bgDisabled: 'layer3BackgroundDisabled', borderDisabled: 'layer3BorderColorDisabled' },
 };
 
-export default function Input({
+export default function TextArea({
   layer = 1,
   mode = 'dark',
   state = 'default',
-  rounded = false,
   label = 'Label',
   placeholder = 'Enter text...',
   helperText = 'Helper text',
@@ -31,8 +30,7 @@ export default function Input({
 }) {
   const [internalValue, setInternalValue] = useState('');
   const [focused, setFocused] = useState(false);
-  const [fieldHover, setFieldHover] = useState(false);
-  const [helperHover, setHelperHover] = useState(false);
+  const [hover, setHover] = useState(false);
   const isControlled = valueProp !== undefined;
   const value = isControlled ? valueProp : internalValue;
   const setValue = isControlled ? onChangeText : setInternalValue;
@@ -63,42 +61,33 @@ export default function Input({
   const bgRef = disabled ? layerToken.bgDisabled : showFocus ? layerToken.bgFocus : layerToken.bg;
   let borderRef = disabled ? layerToken.borderDisabled : showFocus ? layerToken.borderFocus : layerToken.border;
   if (!disabled && (state === 'error' || state === 'warning')) borderRef = `feedback.${state}`;
-  const fieldLines = [
+  const devLines = [
     { prop: 'background', ref: bgRef },
     { prop: 'border', ref: borderRef },
-    { prop: 'border-radius', ref: rounded ? 'cornerRadius.Pill' : 'cornerRadius.S' },
+    { prop: 'border-radius', ref: 'cornerRadius.S' },
     { prop: 'color', ref: disabled ? 'content.contentTertiary' : 'content.contentPrimary' },
     { prop: 'label', ref: disabled ? 'content.contentTertiary' : 'content.contentSecondary' },
-    { prop: 'padding', ref: 'spacing.S spacing.M' },
+    { prop: 'padding', ref: 'spacing.M spacing.L' },
     { prop: 'font', ref: 'typography/4 · regular' },
   ];
-  const helperColorRef =
-    !disabled && (state === 'error' || state === 'warning')
-      ? `feedback.${state}`
-      : disabled ? 'content.contentTertiary' : 'content.contentSecondary';
-  const helperLines = [
-    { prop: 'color', ref: helperColorRef },
-    { prop: 'icon-size', ref: '16' },
-    { prop: 'gap', ref: 'spacing.XS' },
-    { prop: 'font', ref: 'typography/2 · regular' },
-  ];
 
-  const FieldWrap = devMode ? Pressable : View;
-  const HelperWrap = devMode ? Pressable : View;
+  const Container = devMode ? Pressable : View;
 
   return (
-    <View style={styles.container}>
+    <Container
+      style={styles.container}
+      onHoverIn={devMode ? () => setHover(true) : undefined}
+      onHoverOut={devMode ? () => setHover(false) : undefined}
+    >
       <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
 
-      <FieldWrap
-        onHoverIn={devMode ? () => setFieldHover(true) : undefined}
-        onHoverOut={devMode ? () => setFieldHover(false) : undefined}
+      <View
         style={[
           styles.field,
           {
             backgroundColor: fieldBg,
             borderColor: fieldBorder,
-            borderRadius: rounded ? cornerRadius.mobile.Pill : cornerRadius.mobile.S,
+            borderRadius: cornerRadius.mobile.S,
           },
           isWeb && {
             transitionProperty: 'background-color, border-color',
@@ -107,8 +96,6 @@ export default function Input({
           },
         ]}
       >
-        <Icon name="search" size={ICON_SIZE} color={iconColor} />
-
         <TextInput
           style={[styles.input, { color: inputColor }, isWeb && { outlineStyle: 'none' }]}
           value={value}
@@ -118,39 +105,22 @@ export default function Input({
           editable={!disabled}
           placeholder={placeholder}
           placeholderTextColor={placeholderColor}
+          multiline
+          textAlignVertical="top"
         />
-
-        {value.length > 0 && !disabled && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Clear"
-            onPress={() => setValue('')}
-            style={isWeb && { cursor: 'pointer' }}
-          >
-            <Icon name="close" size={ICON_SIZE} color={text.contentPrimary} />
-          </Pressable>
-        )}
-
-        {isWeb && devMode && fieldHover && (
-          <DevTooltip mode={mode} title={`input · layer${layer} · ${state}`} lines={fieldLines} />
-        )}
-      </FieldWrap>
+      </View>
 
       {helperText ? (
-        <HelperWrap
-          style={styles.helperRow}
-          onHoverIn={devMode ? () => setHelperHover(true) : undefined}
-          onHoverOut={devMode ? () => setHelperHover(false) : undefined}
-        >
+        <View style={styles.helperRow}>
           <Icon name="info" size={HELPER_ICON_SIZE} color={helperColor} />
           <Text style={[styles.helperText, { color: helperColor }]}>{helperText}</Text>
-
-          {isWeb && devMode && helperHover && (
-            <DevTooltip mode={mode} title={`helper text · ${state}`} lines={helperLines} />
-          )}
-        </HelperWrap>
+        </View>
       ) : null}
-    </View>
+
+      {isWeb && devMode && hover && (
+        <DevTooltip mode={mode} title={`text area · layer${layer} · ${state}`} lines={devLines} />
+      )}
+    </Container>
   );
 }
 
@@ -163,11 +133,10 @@ const styles = StyleSheet.create({
     ...currentTextStyle('3', 'regular'),
   },
   field: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.mobile.S, // 8 — icon ↔ text
-    paddingHorizontal: spacing.mobile.M, // 12
-    paddingVertical: spacing.mobile.S, // 8
+    height: FIELD_HEIGHT, // 96
+    paddingHorizontal: spacing.mobile.L, // 16
+    paddingTop: spacing.mobile.M, // 12
+    paddingBottom: spacing.mobile.M, // 12
     borderWidth: 1,
   },
   input: {

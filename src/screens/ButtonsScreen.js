@@ -1,7 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
+import Icon from '../components/Icon';
 import { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Button from '../components/Button';
+import DevModeToggle from '../components/DevModeToggle';
 import { base, brandTokens, content, layerTokens } from '../theme/colors';
 import { currentTextStyle } from '../theme/typography';
 
@@ -34,6 +35,7 @@ export default function ButtonsScreen({
   const [rounded, setRounded] = useState(false);
   const [iconOnly, setIconOnly] = useState(false);
   const [hasIcon, setHasIcon] = useState(false);
+  const [devMode, setDevMode] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
 
   const { width } = useWindowDimensions();
@@ -64,7 +66,7 @@ export default function ButtonsScreen({
   const controlPanel = (
     <View style={[styles.controlPanel, { backgroundColor: cardBg }]}>
       <View style={[styles.panelHeader, { borderBottomColor: dividerColor }]}>
-        <Ionicons name="options-outline" size={16} color={titleColor} />
+        <Icon name="tune" size={16} color={titleColor} />
         <Text style={[styles.panelTitle, { color: titleColor }]}>Controls</Text>
         {isNarrow ? (
           <Pressable
@@ -73,7 +75,7 @@ export default function ButtonsScreen({
             onPress={() => setControlsOpen(false)}
             style={isWeb && { cursor: 'pointer' }}
           >
-            <Ionicons name="close" size={20} color={subColor} />
+            <Icon name="close" size={20} color={subColor} />
           </Pressable>
         ) : (
           <Text style={[styles.panelBadge, { color: subColor, borderColor: dividerColor }]}>
@@ -148,11 +150,16 @@ export default function ButtonsScreen({
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
-        {pageTitle && (
-          <Text style={[styles.pageTitle, isNarrow && styles.pageTitleNarrow, { color: titleColor }]}>
-            {pageTitle}
-          </Text>
-        )}
+        <View style={[styles.pageHeader, isNarrow && styles.pageHeaderNarrow]}>
+          {pageTitle ? (
+            <Text style={[styles.pageTitle, isNarrow && styles.pageTitleNarrow, { color: titleColor }]}>
+              {pageTitle}
+            </Text>
+          ) : (
+            <View />
+          )}
+          <DevModeToggle mode={mode} value={devMode} onChange={setDevMode} />
+        </View>
         {!isControlled && (
           <View style={[styles.toggleBar, { backgroundColor: cardBg, borderColor: cardBorder }]}>
             {MODES.map((m) => (
@@ -183,6 +190,7 @@ export default function ButtonsScreen({
                       rounded={rounded}
                       iconOnly={iconOnly}
                       hasIcon={hasIcon}
+                      devMode={devMode}
                     >
                       Send money
                     </Button>
@@ -206,6 +214,7 @@ export default function ButtonsScreen({
                       rounded={rounded}
                       iconOnly={iconOnly}
                       hasIcon={hasIcon}
+                      devMode={devMode}
                     >
                       Send money
                     </Button>
@@ -229,6 +238,7 @@ export default function ButtonsScreen({
                       rounded={rounded}
                       iconOnly={iconOnly}
                       hasIcon={hasIcon}
+                      devMode={devMode}
                     >
                       Send money
                     </Button>
@@ -264,7 +274,7 @@ export default function ButtonsScreen({
               isWeb && { cursor: 'pointer' },
             ]}
           >
-            <Ionicons name={controlsOpen ? 'close' : 'options-outline'} size={24} color={chipActiveColor} />
+            <Icon name={controlsOpen ? 'close' : 'tune'} size={24} color={chipActiveColor} />
           </Pressable>
         </>
       )}
@@ -295,36 +305,55 @@ function Dropdown({ label, options, value, onChange, labelColor, valueColor, tri
           ]}
         >
           <Text style={[styles.dropdownValue, { color: valueColor }]}>{current?.label}</Text>
-          <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={14} color={valueColor} />
+          <Icon name={open ? 'keyboard_arrow_up' : 'keyboard_arrow_down'} size={14} color={valueColor} />
         </Pressable>
 
         {open && (
           <View style={[styles.dropdownMenu, { backgroundColor: menuBg, borderColor: dividerColor }]}>
-            {options.map((opt) => {
-              const active = opt.value === value;
-              return (
-                <Pressable
-                  key={opt.value}
-                  onPress={() => {
-                    onChange(opt.value);
-                    setOpen(false);
-                  }}
-                  style={[
-                    styles.dropdownItem,
-                    active && { backgroundColor: activeBg },
-                    isWeb && { cursor: 'pointer' },
-                  ]}
-                >
-                  <Text style={[styles.dropdownItemText, { color: active ? activeColor : valueColor }]}>
-                    {opt.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+            {options.map((opt) => (
+              <DropdownItem
+                key={opt.value}
+                label={opt.label}
+                active={opt.value === value}
+                activeBg={activeBg}
+                activeColor={activeColor}
+                valueColor={valueColor}
+                hoverBg={triggerBg}
+                onPress={() => {
+                  onChange(opt.value);
+                  setOpen(false);
+                }}
+              />
+            ))}
           </View>
         )}
       </View>
     </View>
+  );
+}
+
+function DropdownItem({ label, active, activeBg, activeColor, valueColor, hoverBg, onPress }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <Pressable
+      onPress={onPress}
+      onHoverIn={() => setHover(true)}
+      onHoverOut={() => setHover(false)}
+      style={[
+        styles.dropdownItem,
+        active ? { backgroundColor: activeBg } : hover && { backgroundColor: hoverBg },
+        isWeb && {
+          cursor: 'pointer',
+          transitionProperty: 'background-color',
+          transitionDuration: '120ms',
+          transitionTimingFunction: 'ease-out',
+        },
+      ]}
+    >
+      <Text style={[styles.dropdownItemText, { color: active ? activeColor : valueColor }]}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -342,12 +371,7 @@ function SwitchRow({
   isLast,
 }) {
   return (
-    <View
-      style={[
-        styles.controlRow,
-        !isLast && { borderBottomColor: dividerColor, borderBottomWidth: 0.5 },
-      ]}
-    >
+    <View style={styles.controlRow}>
       <Text style={[styles.controlLabel, { color: labelColor }]}>{label}</Text>
       <View style={styles.switchRight}>
         <Text style={[styles.switchValue, { color: valueColor }]}>{value ? 'true' : 'false'}</Text>
@@ -439,15 +463,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 100,
   },
-  pageTitleNarrow: {
-    ...currentTextStyle('8', 'medium'),
+  pageHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 32,
+  },
+  pageHeaderNarrow: {
     marginTop: 8,
     marginBottom: 20,
   },
+  pageTitleNarrow: {
+    ...currentTextStyle('8', 'medium'),
+  },
   pageTitle: {
     ...currentTextStyle('11', 'medium'),
-    marginTop: 24,
-    marginBottom: 32,
   },
   toggleBar: {
     flexDirection: 'row',
@@ -516,6 +547,7 @@ const styles = StyleSheet.create({
   },
   demoColumn: {
     flex: 1,
+    zIndex: 1, // keep dev tooltips above the sticky controls column
     gap: 16,
     width: '100%',
   },
@@ -587,7 +619,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 14,
-    borderBottomWidth: 0.5,
     gap: 16,
   },
   controlLabel: {

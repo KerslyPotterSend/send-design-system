@@ -14,6 +14,7 @@ import ColorsScreen from './src/screens/ColorsScreen';
 import ComingSoonScreen from './src/screens/ComingSoonScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import TypographyScreen from './src/screens/TypographyScreen';
+import { MaterialSymbolsRoundedFont } from './src/components/Icon';
 import { dmSans } from './src/theme/typography';
 
 const Stack = createNativeStackNavigator();
@@ -24,6 +25,7 @@ export default function App() {
     DMSans_500Medium,
     DMSans_600SemiBold,
     DMSans_700Bold,
+    MaterialSymbolsRounded: MaterialSymbolsRoundedFont,
   });
 
   if (!fontsLoaded) return null;

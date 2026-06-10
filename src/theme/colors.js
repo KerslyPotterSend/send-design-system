@@ -141,10 +141,10 @@ export const content = {
   },
 };
 
-// Error / warning feedback — Radix red/amber step 8.
+// Error feedback — Radix red step 8. Warning — Amber step 9 (the solid amber).
 export const feedback = {
-  light: { error: palette.red.light[8], warning: palette.amber.light[8] },
-  dark: { error: palette.red.dark[8], warning: palette.amber.dark[8] },
+  light: { error: palette.red.light[8], warning: palette.amber.light[9] },
+  dark: { error: palette.red.dark[8], warning: palette.amber.dark[9] },
 };
 
 export const layerTokens = {

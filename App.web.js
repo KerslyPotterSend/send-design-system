@@ -5,17 +5,25 @@ import {
   DMSans_700Bold,
   useFonts,
 } from '@expo-google-fonts/dm-sans';
-import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import Icon, { MaterialSymbolsRoundedFont } from './src/components/Icon';
 import Logo from './src/components/Logo';
 import ButtonsScreen from './src/screens/ButtonsScreen';
+import CheckboxScreen from './src/screens/CheckboxScreen';
+import ChipScreen from './src/screens/ChipScreen';
 import ColorsScreen from './src/screens/ColorsScreen';
 import ComingSoonScreen from './src/screens/ComingSoonScreen';
 import InputScreen from './src/screens/InputScreen';
+import RadioScreen from './src/screens/RadioScreen';
+import SegmentedControlScreen from './src/screens/SegmentedControlScreen';
 import SizesScreen from './src/screens/SizesScreen';
+import ListScreen from './src/screens/ListScreen';
+import TabsScreen from './src/screens/TabsScreen';
+import TokensScreen from './src/screens/TokensScreen';
+import TextAreaScreen from './src/screens/TextAreaScreen';
 import TypographyScreen from './src/screens/TypographyScreen';
 import { base, brand, brandTokens, content, layerTokens } from './src/theme/colors';
 import { currentTextStyle } from './src/theme/typography';
@@ -40,6 +48,14 @@ const SIDEBAR_GROUPS = [
     items: [
       { id: 'buttons', label: 'Buttons', component: ButtonsScreen },
       { id: 'input', label: 'Input', component: InputScreen },
+      { id: 'textarea', label: 'Text Area', component: TextAreaScreen },
+      { id: 'checkbox', label: 'Checkbox', component: CheckboxScreen },
+      { id: 'radio', label: 'Radio', component: RadioScreen },
+      { id: 'tabs', label: 'Tabs', component: TabsScreen },
+      { id: 'segmented', label: 'Segmented Control', component: SegmentedControlScreen },
+      { id: 'chip', label: 'Chip', component: ChipScreen },
+      { id: 'tokens', label: 'Tokens', component: TokensScreen },
+      { id: 'list', label: 'List', component: ListScreen },
     ],
   },
 ];
@@ -52,6 +68,7 @@ export default function App() {
     DMSans_500Medium,
     DMSans_600SemiBold,
     DMSans_700Bold,
+    MaterialSymbolsRounded: MaterialSymbolsRoundedFont,
   });
   const [activeId, setActiveId] = useState('colors');
   const [mode, setMode] = useState('dark');
@@ -222,7 +239,7 @@ export default function App() {
               isWeb && { cursor: 'pointer' },
             ]}
           >
-            <Ionicons name={navOpen ? 'close' : 'menu'} size={24} color={titleColor} />
+            <Icon name={navOpen ? 'close' : 'menu'} size={24} color={titleColor} />
           </Pressable>
         </View>
       </SafeAreaProvider>
@@ -404,10 +421,10 @@ function ModeToggle({ mode, onChange, isDark }) {
         ]}
       >
         <View style={styles.modeToggleIconSlot}>
-          <Ionicons name="sunny" size={18} color={idleIconColor} />
+          <Icon name="light_mode" size={18} color={idleIconColor} />
         </View>
         <View style={styles.modeToggleIconSlot}>
-          <Ionicons name="moon" size={18} color={idleIconColor} />
+          <Icon name="dark_mode" size={18} color={idleIconColor} />
         </View>
         <View
           style={[
@@ -421,7 +438,7 @@ function ModeToggle({ mode, onChange, isDark }) {
             },
           ]}
         >
-          <Ionicons name={isDark ? 'moon' : 'sunny'} size={18} color={activeIconColor} />
+          <Icon name={isDark ? 'dark_mode' : 'light_mode'} size={18} color={activeIconColor} />
         </View>
       </Pressable>
       <View
